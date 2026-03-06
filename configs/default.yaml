@@ -1,0 +1,44 @@
+# DTGuardFL Default Configuration
+
+# Data
+dataset_dir: "data/CICIoT2023"
+cache_file: "training_data.pkl"
+test_size: 0.2
+
+# Federated Learning
+num_clients: 3
+num_malicious: 1
+dirichlet_alpha: 0.5  # Non-IID level (lower = more heterogeneous)
+
+# Training
+num_rounds: 5
+local_epochs: 3
+batch_size: 32
+learning_rate: 0.001
+
+# DT-Guard Verification
+dt_threshold: 0.5  # Verification threshold
+dt_alpha: 0.7      # Detection Rate weight
+dt_beta: 0.3       # False Positive Rate weight
+gan_epochs: 30
+challenge_samples: 500
+
+# Attack
+attack_type: "MODEL_POISONING"
+attack_scale: 3.0
+
+# Defense
+defense_type: "DTGUARD"
+
+# HSDPS (verifier selection)
+use_hsdps: false
+hsdps_committee_size: 0
+
+# Async FL
+use_async: false
+async_alpha: 0.5
+async_buffer_size: 3
+
+# System
+device: "auto"
+random_seed: 42
