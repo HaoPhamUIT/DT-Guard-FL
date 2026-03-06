@@ -1,0 +1,245 @@
+% This is samplepaper-en.tex — English translation of samplepaper.tex
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.21 of 2022/01/12
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+%
+%\usepackage{color}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
+%\urlstyle{rm}
+%
+\begin{document}
+%
+\title{Active Digital Twin Verification for Robust Federated Learning in IoT Intrusion Detection}
+%
+%\titlerunning{Abbreviated paper title}
+%
+\author{Hoang-Hao Pham\inst{1} \and
+The-Duy Phan\inst{1}}
+%
+\authorrunning{H.-H. Pham and T.-D. Phan}
+%
+\institute{Information Security Laboratory (InSec Lab),
+VNUHCM -- University of Information Technology, Ho Chi Minh City, Vietnam\\
+\email{haoph.16@grad.uit.edu.vn, duypt@uit.edu.vn}}
+%
+\maketitle
+%
+\begin{abstract}
+    Federated Learning (FL) has emerged as a prominent practical approach for training intrusion detection models in Internet of Things (IoT) environments, where data is distributed across numerous edge devices and cannot be centralized to a server. However, FL in IoT faces three major challenges: (i) vulnerability to poisoning and backdoor attacks during training; (ii) data across clients is typically non-independent and non-identically distributed (Non-IID), causing confusion between natural deviations and malicious behavior when relying solely on passive parameter analysis; and (iii) the lack of a mechanism to quantify the actual knowledge contribution of each client, allowing low-contribution clients (free-riders) to be treated equally with high-quality clients.
+
+    In this paper, we propose DT-Guard, a Digital Twin-based defense framework designed to enhance both the robustness and fairness of FL in IoT intrusion detection. DT-Guard proactively tests the behavior of local models on synthetic challenge datasets, combined with a four-layer verification process (intrusion detection performance, backdoor resistance, parameter deviation, and cross-round stability). Additionally, DT-Guard integrates a DT-Driven Performance Weighting (DT-PW) aggregation mechanism, in which the server deploys both the client model and the global model into the Digital Twin to compare predictions on the same challenge dataset; clients that genuinely train on their own data will produce predictions that differ from the global model, while free-riders that merely copy the global model will produce nearly identical predictions and are eliminated through an automatic effort gate. Experimental results on the CIC-IoT-2023 dataset across multiple advanced poisoning attack scenarios demonstrate that DT-Guard maintains stable performance, enhances resilience against attacks under Non-IID conditions, and outperforms recent specialized defense methods in both security and fair contribution assessment.
+
+\keywords{Federated learning \and Digital twin \and Intrusion detection \and IoT security \and Poisoning attack \and Contribution evaluation}
+\end{abstract}
+%
+%
+%
+\section{Introduction}
+
+Federated Learning (FL) enables IoT devices to collaboratively train intrusion detection models without sharing raw data, effectively satisfying privacy requirements and conserving bandwidth~\cite{mcmahan2016communication}. However, in practical IoT settings -- where data is typically non-independent and non-identically distributed (Non-IID) with severe class imbalance -- FL is highly susceptible to exploitation by poisoning and backdoor attacks~\cite{baruch2019little, shejwalkar2021manipulating}. Recent studies~\cite{issa2025dtbfl, zeng2024clipcluster, xu2022signguard} have shown that no existing defense method can consistently maintain good performance across all sophisticated attack scenarios: each approach exhibits weaknesses against at least one specific type of attack.
+
+This paper is motivated by three core research gaps:
+
+\begin{enumerate}
+    \item \textbf{Existing defenses are easily bypassed:} Current defense methods still exhibit significant vulnerabilities and are readily circumvented by increasingly sophisticated poisoning attacks, including LIE~\cite{baruch2019little}, Min-Max, Min-Sum~\cite{shejwalkar2021manipulating}, MPAF, and Backdoor. A comparative analysis in DT-BFL~\cite{issa2025dtbfl} shows that each method -- whether SignGuard~\cite{xu2022signguard}, GeoMed~\cite{pillutla2022robust}, ClipCluster~\cite{zeng2024clipcluster}, or LUP -- fails against at least one type of attack when evaluated on the same real-world dataset.
+
+    \item \textbf{Passive parameter analysis causes confusion:} Current defense mechanisms -- from Krum~\cite{blanchard2017machine}, Median, Trimmed Mean~\cite{yin2018byzantine} to SignGuard~\cite{xu2022signguard} -- primarily analyze model parameters or simple statistics (norm, distance, sign, clustering). This passive approach easily confuses natural deviations caused by Non-IID data with deliberate malicious behavior, resulting in either a high false positive rate (incorrectly rejecting benign clients) or poor detection capability against sophisticated attacks that have been ``reverse-optimized'' to remain within the normal distribution range~\cite{baruch2019little, shejwalkar2021manipulating}.
+
+    \item \textbf{Lack of mechanism to quantify actual contribution:} There is no mechanism to quantify the actual knowledge contribution (Quality of Contribution) of each client, allowing malicious or low-contribution clients (free-riders) to be treated equally with benign clients. FedAvg~\cite{mcmahan2016communication} assigns weights proportional to sample count without reflecting quality; Trust Score in LUP~\cite{issa2025dtbfl} and PoC in PPSG~\cite{zhang2025ppsg} evaluate clients based on parameter deviation but inadvertently reward free-riders, whose updates are nearly identical to the global model.
+\end{enumerate}
+
+To simultaneously address all three gaps, we propose \textbf{DT-Guard}, a Digital Twin-based defense framework designed to enhance both robustness and fairness for FL in IoT intrusion detection. Instead of passive monitoring, DT-Guard integrates a Digital Twin on the server side as a ``virtual testing laboratory'': each model update from a client is temporarily deployed in the Digital Twin, its actual behavior is assessed through a four-layer verification process, and a Trust-Score is computed before the update is accepted. Furthermore, the \textbf{DT-Driven Performance Weighting (DT-PW)} aggregation mechanism compares predictions of each client with the global model on challenge data: genuinely trained clients will produce distinct predictions, while free-riders copying the global model are detected through the Effort Gate and automatically eliminated.
+
+The main contributions of this paper are:
+
+\begin{itemize}
+    \item Identification of three core research gaps in current FL-based IDS defense mechanisms concerning vulnerability, Non-IID confusion, and the absence of contribution assessment.
+
+    \item Proposal of DT-Guard with a four-layer behavioral verification process on Digital Twin, shifting from passive analysis to active verification.
+
+    \item Design of the DT-PW mechanism, leveraging Digital Twin to score the actual capability of each client and eliminate free-riders through the Effort Gate.
+
+    \item Comprehensive evaluation on the CIC-IoT-2023 dataset with five poisoning attack scenarios, compared against nine representative defense methods, demonstrating that DT-Guard maintains stable performance and improves both robustness and contribution fairness.
+\end{itemize}
+
+
+\section{Background}
+
+
+\subsection{Digital Twin}
+
+A Digital Twin (DT) is a digital model that mirrors the state and behavior of a physical system in near real-time, constructed from sensor data, modeling, and analytical algorithms. In industrial infrastructures and smart grids, DTs are commonly used for equipment monitoring, operational scenario simulation, risk forecasting, and decision support. When combined with federated learning, a DT can serve as a ``testing space'' isolated from the actual system: model updates from clients are deployed on the DT to verify their behavior before being accepted into the global model. This approach allows the quality and safety of each local model to be assessed under various data scenarios without disrupting services on the real infrastructure.
+
+\subsection{Intrusion Detection}
+
+Intrusion Detection Systems (IDS) for IoT aim to detect anomalies or attacks in network traffic and device behavior, such as port scanning, denial-of-service attacks, botnet command-and-control, or unauthorized access. Compared to traditional IT environments, IoT IDS must handle a large number of resource-constrained devices, diverse protocols, and vastly different traffic patterns across application domains. The current trend is to use deep learning models on traffic features to simultaneously classify multiple attack types. When IDS is deployed within FL, each client observes only a small, localized portion of the attack space, leading to Non-IID and severely imbalanced data; this simultaneously complicates the learning task and introduces noise into defense mechanisms based on global statistics.
+
+\subsection{Active Behavioral Test}
+
+Most defense mechanisms in FL are \emph{passive} in nature: they analyze model parameters or simple statistics (norm, distance, sign, clustering) to decide whether to accept or reject an update. This approach has two main limitations. First, geometric features can be ``reverse-optimized'' by sophisticated attacks (LIE, Min-Max, Min-Sum, MPAF), so that malicious updates still fall within the distribution of benign clients. Second, under strong Non-IID conditions, updates from benign clients with very different data distributions can be mistakenly flagged as outliers and incorrectly rejected.
+
+The idea behind \emph{active behavioral testing} is to shift focus from ``inspecting parameters'' to ``observing model behavior'' within a controlled testing environment. Specifically, instead of merely measuring the distance between an update and the global model, the server (through the Digital Twin) temporarily deploys the local model and evaluates it on one or more \emph{challenge datasets} designed to cover difficult scenarios: backdoor samples, decision boundary samples, or synthetic balanced benign/attack traffic distributions. Based on actual inference results, the system can detect models exhibiting abnormal behavior and more clearly distinguish between Non-IID deviations and genuine poisoning.
+
+In the context of this paper, the Digital Twin serves as the venue for active behavioral verification: a specialized data generator creates balanced, multi-class challenge datasets; each model update is deployed in the DT and undergoes a four-layer behavioral test suite (performance, backdoor, parameter poisoning, temporal stability). The test results are aggregated into a Trust-Score and combined with a Performance-Score from the DT-PW mechanism to determine both client acceptance/rejection and contribution weights in the FL aggregation step.
+
+\subsection{Synthetic Data Generation for Tabular Data}
+
+The effectiveness of behavioral verification in the Digital Twin depends directly on the quality of challenge datasets used to evaluate local models. In an FL-IDS system, the server has no access to clients' raw data, thus requiring a specialized data generator capable of producing diverse synthetic network traffic samples, covering both normal traffic and multiple attack types, with feature distributions closely approximating real data.
+
+Deep learning-based synthetic data generation models for tabular data have advanced significantly in recent years, following multiple approaches: Generative Adversarial Networks (GANs), Diffusion Models, Variational Autoencoders (VAEs), Normalizing Flows, and Large Language Models (LLMs). However, for tabular data -- which comprises both continuous and categorical variables with multi-modal distributions and complex inter-column correlations -- the two most prominent approaches are GANs and Diffusion Models. The GAN approach is represented by CTGAN~\cite{xu2019modeling}, an architecture specifically designed for tabular data with a conditional generation mechanism that effectively handles categorical variables and multi-modal distributions, along with WGAN-GP -- a variant that improves training stability through gradient penalty. The Diffusion Model approach has demonstrated superior capabilities over GANs across multiple benchmark datasets, with notable representatives: TabDDPM~\cite{kotelnikov2023tabddpm} applies the denoising diffusion process on tabular data with an MLP architecture; TabSyn combines a VAE with a diffusion model in latent space (latent diffusion) to accelerate sample generation while maintaining high quality; and ForestDiffusion replaces neural networks with decision tree models (XGBoost) for the denoising step, enabling entirely CPU-based execution without requiring a GPU.
+
+Selecting an appropriate generative model requires simultaneously considering multiple criteria: distributional fidelity, sample coverage and diversity, conditional label generation capability (conditional control), and computational cost (latency, memory). In the context of DT-Guard, the generator must additionally satisfy a specific requirement: the challenge data must be sufficiently faithful to distinguish genuinely trained models from copies, while being diverse enough to cover rare attack classes that the global model has not yet handled well.
+
+\subsection{Poisoning Attack}
+
+Poisoning attacks in FL aim to interfere with the training process, causing the global model to degrade in quality or behave incorrectly on samples that the attacker targets. There are two main forms: (i) corrupting local data and then training normally (data poisoning) or (ii) directly modifying model parameters/updates sent to the server (model poisoning). For IDS, attacks can be untargeted (generally reducing accuracy, increasing missed attack rates) or targeted (backdoor), where the model still performs well on most traffic but consistently misclassifies certain special samples containing a ``trigger.'' Modern attacks are typically designed so that malicious updates still fall within the region where benign clients normally appear, or optimize distance, variance, and statistical structure to bypass filters based on distance, median, or clustering. This makes defense strategies based purely on parameters easily circumvented unless the model's inference behavior is directly observed.
+
+\subsection{Free-Rider Problem in Federated Learning}
+
+In FL, free-riding occurs when a client essentially does not train on its local data but merely copies the global model (or performs minimal training) and sends it back to the server. Traditional aggregation methods based on data sample counts (such as FedAvg) or parameter similarity cannot distinguish free-riders from benign clients, because the free-rider's update is parametrically very close to the global model and shows no obvious anomalous signs. As a result, free-riders are assigned equal or even higher weights than clients with genuine contributions, slowing convergence and reducing the quality of the global model. This problem demands a contribution assessment mechanism based on actual inference capability, rather than relying solely on statistical features of model parameters.
+
+\section{Related Works}
+
+This section presents an overview of related research, organized along three main directions corresponding to the three research gaps that DT-Guard addresses: (1) defense mechanisms against poisoning attacks in FL, (2) applications of Digital Twin in FL and IoT, and (3) methods for evaluating client contribution in FL.
+
+\subsection{Robust Aggregation and Defense Against Poisoning Attacks}
+
+Traditional defense methods in FL -- including Krum~\cite{blanchard2017machine}, Median, Trimmed Mean~\cite{yin2018byzantine}, and GeoMed~\cite{pillutla2022robust} -- laid the foundation for robust aggregation by filtering updates based on distance, median, or geometric median in the parameter space. However, these methods are all passive in nature and have been bypassed by the new generation of attacks, motivating the development of more advanced defense mechanisms.
+
+\textbf{SignGuard}~\cite{xu2022signguard} analyzes the sign direction of gradients to identify updates with abnormal gradient directions, providing effective defense against certain data-oriented attacks. However, sophisticated attacks such as LIE~\cite{baruch2019little} and Min-Max/Min-Sum~\cite{shejwalkar2021manipulating} have been specifically designed to ``reverse-optimize'' sign directions, so that malicious updates remain within the normal statistical distribution, rendering SignGuard ineffective.
+
+\textbf{ClipCluster}~\cite{zeng2024clipcluster} combines norm clipping with clustering to group updates before aggregation, achieving high effectiveness against many attack types. However, ClipCluster operates entirely in the parameter space with fixed clustering thresholds, leading to significantly degraded performance against attacks designed to place malicious updates near the centroid of benign client distributions.
+
+\textbf{LUP (Local Updates Purify)}~\cite{issa2025dtbfl}, proposed within the DT-BFL framework, is the most advanced method in this category. LUP designs a two-stage filtering pipeline: the first stage uses MAD (Median Absolute Deviation) to remove outliers, and the second stage employs Agglomerative Hierarchical Clustering (AHC) combined with a ``genuine criterion'' based on Trust Score, update similarity, and kurtosis. LUP achieves impressive results across multiple datasets (MNIST, ToN-IoT, CIFAR-10) even when 50\% of clients are malicious. However, LUP's Trust Score is computed based on parameter deviation from the global model -- this remains passive analysis and can be deceived by attacks ``reverse-optimized'' to maintain small distances. Moreover, the parameter-distance-based Trust Score mechanism inadvertently \emph{rewards free-riders}: a free-rider's update is nearly identical to the global model and thus receives the highest Trust Score, distorting aggregation weights.
+
+\textbf{Common limitation.} From traditional to the most advanced methods, all of them passively analyze parameters or statistics in the parameter space without directly observing the model's inference behavior. Under strong Non-IID conditions, natural deviations among benign clients can be comparable to attack-induced deviations, resulting in either high false positive rates or failure to detect sophisticated attacks. DT-Guard proposes a shift from passive analysis to active behavioral verification through Digital Twin.
+
+\subsection{Digital Twin in Federated Learning and IoT}
+
+Digital Twin has been integrated into many FL systems for IoT and smart grids, but primarily plays a supporting infrastructure or passive monitoring role.
+
+In the IoT domain, DT-BFL~\cite{issa2025dtbfl} constructs edge digital twins for IoT devices to collect data, train local models, and interact with blockchain. However, the DT in DT-BFL only serves to mirror device states and store data -- it does not directly participate in the verification or model filtering process. The poisoning filtering step (LUP) is performed using statistical algorithms on parameters, independently of the DT. BAFL-DT~\cite{qu2021bafldt} deploys DT on the cloud to replicate IoT devices, supporting model aggregation and blockchain storage, but does not include a mechanism for verifying local model quality.
+
+In the smart grid domain, Zhang et al.~\cite{zhang2025ppsg} propose PPSG, integrating DT with asynchronous FL (AFL) for smart grids. The DT layer in PPSG is responsible for computing model weights, measuring station contributions, load forecasting, and fault diagnosis. Although the DT participates in contribution assessment, the evaluation mechanism is still based on MMD (Maximum Mean Discrepancy) between local and global models -- a form of passive parameter analysis. Lu et al.~\cite{lu2020diten} introduce DITEN, a blockchain- and DT-based FL architecture where DT is deployed at the edge layer for model training and aggregation, but does not verify the behavior of updates before aggregation.
+
+\textbf{Gap.} In existing research, DTs primarily serve as infrastructure simulation, data storage, or computing resource management tools. No study has exploited DT as an \emph{active behavioral testing environment}, where local models are temporarily deployed and evaluated on synthetic challenge datasets before being accepted. DT-Guard fills this gap by using DT as a platform for generating challenge data and conducting four-layer behavioral verification.
+
+\subsection{Contribution Evaluation and Fair Aggregation}
+
+Fair evaluation of each client's contribution is an important but not yet thoroughly addressed problem in FL.
+
+\textbf{Parameter-based methods.} FedAvg~\cite{mcmahan2016communication} assigns weights proportional to the number of data samples, without reflecting contribution quality at all. Trust Score in LUP~\cite{issa2025dtbfl} and PoC (Proof of Contribution) in PPSG~\cite{zhang2025ppsg} evaluate clients based on parameter deviation from the global model. However, both approaches share an inherent weakness: free-riders -- clients that barely train and merely copy the global model -- will have updates very close to the global model, resulting in high Trust Scores and disproportionately large contribution weights.
+
+\textbf{Game theory-based methods.} Shapley value~\cite{shapley1953value} from cooperative game theory has been applied in FL to measure the marginal contribution of each client. Zhang et al.~\cite{zhang2025bcsm} propose HSDPS, combining Shapley value with DPoS (Delegated Proof-of-Stake) for reward distribution in blockchain consensus mechanisms. However, Shapley value in HSDPS only determines who is elected as coordinator in the blockchain and does not directly influence FL model aggregation weights. Furthermore, computing exact Shapley values requires evaluating all sub-coalitions, which has exponential complexity and typically must be approximated -- introducing noise in distinguishing similar contribution levels.
+
+\textbf{Gap.} Existing methods either rely on parameter distance (exploitable by free-riders) or Shapley approximation (high computational cost, noisy for similar contributions). No method evaluates contribution based on the \emph{actual inference capability} of client models on challenge data. DT-Guard proposes the DT-Driven Performance Weighting (DT-PW) mechanism, in which the Digital Twin acts as an ``examiner'': each client's model is run for inference on the same challenge dataset as the global model, and the degree of prediction divergence serves as a measure of actual training effort. Genuinely trained clients will produce predictions that differ from the global model, while free-riders copying the global model will produce nearly identical predictions and are automatically eliminated through the Effort Gate.
+
+\subsection{Summary and Positioning}
+
+Table~\ref{tab:related_comparison} summarizes the comparison of DT-Guard with related works along three main criteria. The core differentiating factors of DT-Guard are: (i) shifting from passive analysis to active behavioral verification on Digital Twin, (ii) using a specialized challenge data generator (based on Diffusion Models) to create diverse test scenarios, and (iii) evaluating contribution based on actual inference capability rather than parameter distance.
+
+\begin{table}[t]
+\caption{Comparison of DT-Guard with related works.}
+\label{tab:related_comparison}
+\centering
+\footnotesize
+\begin{tabular}{lcccc}
+\hline
+\textbf{Framework} & \textbf{Year} & \textbf{Verification} & \textbf{DT Role} & \textbf{Contribution Eval.} \\
+\hline
+FedAvg~\cite{mcmahan2016communication} & 2017 & None & None & By sample count \\
+Krum~\cite{blanchard2017machine} & 2017 & Passive & None & Select 1 client \\
+GeoMed~\cite{pillutla2022robust} & 2022 & Passive & None & None \\
+SignGuard~\cite{xu2022signguard} & 2022 & Passive & None & None \\
+ClipCluster~\cite{zeng2024clipcluster} & 2024 & Passive & None & By cluster \\
+LUP~\cite{issa2025dtbfl} & 2025 & Passive & Infrastructure & Trust Score (distance) \\
+PPSG~\cite{zhang2025ppsg} & 2025 & Passive & Computing & PoC (MMD) \\
+HSDPS~\cite{zhang2025bcsm} & 2025 & Passive & None & Shapley (consensus) \\
+\hline
+\textbf{DT-Guard (Ours)} & \textbf{2025} & \textbf{Active} & \textbf{Testing} & \textbf{DT-PW (inference)} \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Methodology}
+\textbf{Write an overview, describe how many components, what Component A does, what B does, concisely. Figure 1 describes the overall architecture of the proposed model.}
+
+\subsection{Overview}
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{nl2ps-architecture_final.pdf}
+    \caption{Overview of the proposed obfuscation-aware LLM training and evaluation framework.}
+    \label{fig:framework}
+\end{figure*}
+
+\section{Experiments and Evaluation}
+\subsection{Research Questions}
+\subsubsection{RQ1. To what extent can LLMs generate syntactically valid PowerShell payloads while adhering to explicit obfuscation control tags?}
+This question examines the instruction-following reliability of LLMs when guided by explicit obfuscation tags, focusing on syntactic validity and behavioral consistency of the generated payloads.
+
+
+\subsubsection{RQ2. How do different obfuscation techniques affect structural and statistical properties of generated scripts?}
+This question analyzes how distinct obfuscation techniques affect structural representations and distributional characteristics of generated scripts, enabling fine-grained comparison across transformation categories.
+
+
+\subsubsection{RQ3. How effective are LLM-generated payloads in achieving evasion while maintaining behavioral consistency with the original commands?}
+This question evaluates the practical security implications of AI-generated scripts by measuring their evasion performance against representative detection engines while ensuring functional equivalence.
+
+\subsection{Experiment Settings}
+\subsubsection{Environmental setup.}
+
+\subsubsection{Dataset.}
+
+\subsubsection{Evaluation metrics.}
+
+
+\subsection{Experimental Results}
+\subsubsection{RQ1. To what extent can LLMs generate syntactically valid PowerShell payloads while adhering to explicit obfuscation control tags?}
+
+
+\subsubsection{RQ2. How do different obfuscation techniques affect structural and statistical properties of generated scripts?}
+
+
+\subsubsection{RQ3. How effective are LLM-generated payloads in achieving evasion while maintaining behavioral consistency with the original commands?}
+
+
+\section{Threats to Validity}
+\subsection{External Validity}
+
+
+\subsection{Internal Validity}
+
+
+\subsection{Construct Validity}
+
+
+\subsection{Conclusion Validity}
+
+
+\section{Conclusion and Future Works}
+
+
+
+\begin{credits}
+\subsubsection{\discintname}
+It is now necessary to declare any competing interests or to specifically
+state that the authors have no competing interests. Please place the
+statement with a bold run-in heading in small font size beneath the
+(optional) acknowledgments\footnote{If EquinOCS, our proceedings submission
+system, is used, then the disclaimer can be provided directly in the system.},
+for example: The authors have no competing interests to declare that are
+relevant to the content of this article. Or: Author A has received research
+grants from Company W. Author B has received a speaker honorarium from
+Company X and owns stock in Company Y. Author C is a member of committee Z.
+\end{credits}
+%
+% ---- Bibliography ----
+%
+\bibliographystyle{splncs04}
+\bibliography{references}
+\end{document}
+

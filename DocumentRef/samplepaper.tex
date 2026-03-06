@@ -1,0 +1,268 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.21 of 2022/01/12
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+%\usepackage{color}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
+%\urlstyle{rm}
+%
+\begin{document}
+%
+\title{Active Digital Twin Verification for Robust Federated Learning in IoT Intrusion Detection}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Hoang-Hao Pham\inst{1} \and
+The-Duy Phan\inst{1}}
+%
+\authorrunning{H.-H. Pham and T.-D. Phan}
+%
+\institute{Information Security Laboratory (InSec Lab),
+VNUHCM -- University of Information Technology, Ho Chi Minh City, Vietnam\\
+\email{haoph.16@grad.uit.edu.vn, duypt@uit.edu.vn}}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+    Học liên kết (Federated Learning -- FL) đã trở thành một phương pháp thực tiễn nổi bật để huấn luyện các mô hình phát hiện xâm nhập trong môi trường Internet vạn vật (IoT), nơi dữ liệu được phân tán trên nhiều thiết bị biên và không thể tập trung về máy chủ. Tuy nhiên, FL trong IoT phải đối mặt với ba thách thức lớn: (i) dễ bị tấn công poisoning và backdoor vào quá trình huấn luyện; (ii) dữ liệu giữa các client thường phi độc lập và không đồng phân phối (Non-IID), gây nhầm lẫn giữa sai lệch tự nhiên và hành vi phá hoại khi chỉ phân tích tham số thụ động; và (iii) thiếu cơ chế định lượng mức đóng góp tri thức thực tế của từng client, khiến các client đóng góp ít (free-rider) vẫn được đối xử ngang bằng với client chất lượng.
+
+    Trong bài báo này, chúng tôi đề xuất DT-Guard, một khung bảo vệ dựa trên Digital Twin nhằm tăng cường cả tính vững chắc và tính công bằng của FL trong phát hiện xâm nhập IoT. DT-Guard chủ động kiểm tra hành vi của các mô hình cục bộ trên các bộ dữ liệu thách thức tổng hợp, kết hợp một quy trình kiểm định bốn lớp (hiệu năng phát hiện xâm nhập, khả năng kháng backdoor, mức lệch tham số, và ổn định qua các vòng). Bên cạnh đó, DT-Guard tích hợp cơ chế tổng hợp DT-Driven Performance Weighting (DT-PW), trong đó server đưa cả mô hình của client và mô hình toàn cục vào Digital Twin để so sánh dự đoán trên cùng bộ dữ liệu thách thức; client thật sự huấn luyện trên dữ liệu riêng sẽ cho ra dự đoán khác biệt so với mô hình chung, trong khi free-rider chỉ sao chép mô hình chung nên dự đoán gần như y hệt và bị loại bỏ thông qua cổng nỗ lực tự động. Kết quả thực nghiệm trên bộ dữ liệu CIC-IoT-2023 với nhiều kịch bản tấn công poisoning tiên tiến cho thấy DT-Guard duy trì hiệu năng ổn định, tăng cường khả năng chống chịu trước tấn công trong điều kiện Non-IID và vượt trội các phương pháp phòng thủ chuyên biệt gần đây về cả khía cạnh an ninh lẫn đánh giá công bằng mức đóng góp của client.
+
+\keywords{Federated learning \and Digital twin \and Intrusion detection \and IoT security \and Poisoning attack \and Contribution evaluation}
+\end{abstract
+%
+%
+%
+\section{Introduction}
+
+Học liên kết (Federated Learning -- FL) cho phép các thiết bị IoT cùng huấn luyện mô hình phát hiện xâm nhập mà không cần chia sẻ dữ liệu thô, đáp ứng tốt các yêu cầu về quyền riêng tư và tiết kiệm băng thông~\cite{mcmahan2016communication}. Tuy nhiên, trong thực tế IoT -- nơi dữ liệu thường phi độc lập và không đồng phân phối (Non-IID), mất cân bằng lớp nghiêm trọng -- FL rất dễ bị khai thác bởi các tấn công đầu độc (poisoning) và cài cắm backdoor~\cite{baruch2019little, shejwalkar2021manipulating}. Các nghiên cứu gần đây~\cite{issa2025dtbfl, zeng2024clipcluster, xu2022signguard} cho thấy chưa có phương pháp phòng thủ nào duy trì được hiệu năng tốt trước mọi kịch bản tấn công tinh vi: mỗi cách tiếp cận đều bộc lộ điểm yếu trước ít nhất một dạng tấn công nhất định.
+
+Bài báo xuất phát từ ba khoảng trống cốt lõi:
+
+\begin{enumerate}
+    \item \textbf{Phòng thủ hiện tại dễ bị qua mặt:} Các phương pháp phòng thủ hiện có vẫn bộc lộ nhiều điểm yếu, dễ bị các cuộc tấn công đầu độc ngày càng tinh vi -- bao gồm LIE~\cite{baruch2019little}, Min-Max, Min-Sum~\cite{shejwalkar2021manipulating}, MPAF và Backdoor -- qua mặt. Phân tích đối sánh trong DT-BFL~\cite{issa2025dtbfl} cho thấy mỗi phương pháp -- dù là SignGuard~\cite{xu2022signguard}, GeoMed~\cite{pillutla2022robust}, ClipCluster~\cite{zeng2024clipcluster} hay LUP -- đều thất bại trước ít nhất một loại tấn công khi được đánh giá trên cùng bộ dữ liệu thực tế.
+
+    \item \textbf{Phân tích tham số thụ động gây nhầm lẫn:} Các cơ chế phòng thủ hiện nay -- từ Krum~\cite{blanchard2017machine}, Median, Trimmed Mean~\cite{yin2018byzantine} đến SignGuard~\cite{xu2022signguard} -- chủ yếu phân tích tham số mô hình hoặc các thống kê đơn giản (norm, khoảng cách, dấu hiệu, phân cụm). Cách tiếp cận thụ động này dễ nhầm lẫn giữa sai lệch tự nhiên do Non-IID và hành vi cố tình phá hoại, dẫn đến hoặc tỉ lệ dương tính giả cao (loại nhầm client lành tính), hoặc khả năng phát hiện kém trước các tấn công tinh vi đã được ``tối ưu ngược'' để nằm trong vùng phân bố bình thường~\cite{baruch2019little, shejwalkar2021manipulating}.
+
+    \item \textbf{Thiếu cơ chế định lượng mức đóng góp thực tế:} Chưa có cơ chế định lượng mức đóng góp tri thức thực tế (Quality of Contribution) của từng client, khiến client độc hại hoặc đóng góp ít (free-rider) vẫn được đối xử ngang bằng với client lành tính. FedAvg~\cite{mcmahan2016communication} gán trọng số theo số lượng mẫu mà không phản ánh chất lượng; Trust Score trong LUP~\cite{issa2025dtbfl} và PoC trong PPSG~\cite{zhang2025ppsg} đánh giá dựa trên độ lệch tham số nhưng vô tình thưởng cho free-rider vì bản cập nhật của chúng gần trùng với mô hình toàn cục.
+\end{enumerate}
+
+Để giải quyết đồng thời ba khoảng trống trên, chúng tôi đề xuất \textbf{DT-Guard}, một khung bảo vệ dựa trên Digital Twin nhằm tăng cường cả tính vững chắc lẫn tính công bằng cho FL trong phát hiện xâm nhập IoT. Thay vì giám sát thụ động, DT-Guard đưa Digital Twin vào phía server như một ``phòng thử nghiệm ảo'': mỗi bản cập nhật mô hình từ client được triển khai tạm thời trong Digital Twin, đánh giá hành vi thực tế qua quy trình kiểm định bốn lớp, và tổng hợp thành điểm tin cậy (Trust-Score) trước khi được chấp nhận. Bên cạnh đó, cơ chế tổng hợp \textbf{DT-Driven Performance Weighting (DT-PW)} so sánh dự đoán của từng client với mô hình toàn cục trên dữ liệu thách thức: client huấn luyện thực sẽ cho dự đoán khác biệt, trong khi free-rider sao chép mô hình chung bị phát hiện qua cổng nỗ lực (Effort Gate) và loại bỏ tự động.
+
+Các đóng góp chính của bài báo:
+
+\begin{itemize}
+    \item Nhận diện ba khoảng trống cốt lõi trong các cơ chế phòng thủ IDS dựa trên FL hiện nay liên quan đến tính dễ tổn thương, sự nhầm lẫn do Non-IID, và thiếu cơ chế đánh giá đóng góp.
+
+    \item Đề xuất DT-Guard với quy trình kiểm định hành vi bốn lớp trên Digital Twin, chuyển từ phân tích thụ động sang kiểm chứng chủ động.
+
+    \item Thiết kế cơ chế DT-PW, tận dụng Digital Twin để chấm điểm năng lực thực tế của từng client và loại bỏ free-rider thông qua Effort Gate.
+
+    \item Đánh giá toàn diện trên bộ dữ liệu CIC-IoT-2023 với năm kịch bản tấn công poisoning, so sánh với chín phương pháp phòng thủ tiêu biểu, cho thấy DT-Guard duy trì hiệu năng ổn định và cải thiện cả độ vững lẫn tính công bằng đóng góp.
+\end{itemize}
+
+
+\section{Background}
+
+
+\subsection{Digital Twin}
+
+Digital Twin (DT) là một mô hình số phản ánh trạng thái và hành vi của hệ thống vật lý theo thời gian gần thực, được xây dựng từ dữ liệu cảm biến, mô hình hoá và các thuật toán phân tích. Trong các hạ tầng công nghiệp và lưới điện thông minh, DT thường được dùng để giám sát thiết bị, mô phỏng các kịch bản vận hành, dự báo rủi ro và hỗ trợ ra quyết định. Khi kết hợp với học liên kết, DT có thể đóng vai trò như một ``không gian thí nghiệm'' tách biệt với hệ thống thực: các bản cập nhật mô hình từ client được triển khai trên DT để kiểm tra hành vi trước khi được chấp nhận vào mô hình toàn cục. Cách tiếp cận này cho phép đánh giá chất lượng và độ an toàn của từng mô hình cục bộ dưới nhiều kịch bản dữ liệu khác nhau, mà không làm gián đoạn dịch vụ trên hạ tầng thật.
+
+\subsection{Intrusion Detection}
+
+Hệ thống phát hiện xâm nhập (Intrusion Detection System -- IDS) cho IoT nhằm phát hiện bất thường hoặc tấn công trong lưu lượng và hành vi thiết bị, ví dụ quét cổng, tấn công từ chối dịch vụ, điều khiển botnet hay truy cập trái phép. So với môi trường CNTT truyền thống, IDS trong IoT phải xử lý số lượng lớn thiết bị tài nguyên hạn chế, giao thức đa dạng và mẫu lưu lượng rất khác nhau giữa các miền ứng dụng. Xu hướng hiện nay là dùng các mô hình học sâu trên đặc trưng lưu lượng để phân loại nhiều loại tấn công cùng lúc. Khi đưa IDS vào FL, mỗi client chỉ quan sát một phần nhỏ, mang tính cục bộ của không gian tấn công, dẫn đến dữ liệu Non-IID và mất cân bằng mạnh; điều này vừa làm khó bài toán học, vừa gây nhiễu cho các cơ chế phòng thủ dựa trên thống kê toàn cục.
+
+\subsection{Active Behavioral Test}
+
+Phần lớn các cơ chế phòng thủ trong FL hiện nay mang tính \emph{thụ động}: chúng phân tích tham số mô hình hoặc các thống kê đơn giản (norm, khoảng cách, sign, phân cụm) để quyết định chấp nhận hay loại bỏ một bản cập nhật. Cách tiếp cận này có hai hạn chế chính. Thứ nhất, các đặc trưng hình học có thể bị ``tối ưu ngược'' bởi các tấn công tinh vi (LIE, Min-Max, Min-Sum, MPAF), sao cho bản cập nhật độc hại vẫn nằm trong vùng phân bố của client lành tính. Thứ hai, trong điều kiện Non-IID mạnh, bản cập nhật từ client lành tính nhưng có phân phối dữ liệu rất khác vẫn dễ bị coi là ngoại lệ và bị loại nhầm.
+
+Ý tưởng của \emph{active behavioral test} là chuyển trọng tâm từ việc ``nhìn vào tham số'' sang ``quan sát hành vi'' của mô hình trong một môi trường kiểm thử được kiểm soát. Cụ thể, thay vì chỉ đo khoảng cách giữa bản cập nhật và mô hình toàn cục, server (thông qua Digital Twin) sẽ triển khai tạm thời mô hình cục bộ và đánh giá nó trên một hoặc nhiều \emph{bộ dữ liệu thách thức} được thiết kế để bao phủ các kịch bản khó: mẫu backdoor, mẫu biên quyết định, hoặc các phân phối lưu lượng tổng hợp cân bằng benign/tấn công. Dựa trên kết quả suy luận thực tế, hệ thống có thể phát hiện các mô hình có hành vi bất thường và phân biệt rõ hơn giữa sai khác do Non-IID và poisoning thực sự.
+
+Trong bối cảnh bài báo này, Digital Twin được sử dụng như nơi diễn ra các kiểm định hành vi chủ động: bộ sinh dữ liệu chuyên biệt tạo ra các bộ thách thức cân bằng, nhiều lớp; mỗi bản cập nhật mô hình được đưa vào DT và trải qua chuỗi bài kiểm tra hành vi bốn lớp (hiệu năng, backdoor, poisoning tham số, ổn định theo thời gian). Kết quả của các bài test được tổng hợp thành điểm tin cậy (Trust-Score) và kết hợp với điểm đóng góp (Performance-Score) từ cơ chế DT-PW để quyết định cả việc chấp nhận/loại bỏ client lẫn trọng số đóng góp trong bước tổng hợp FL.
+
+\subsection{Synthetic Data Generation for Tabular Data}
+
+Hiệu quả kiểm định hành vi trong Digital Twin phụ thuộc trực tiếp vào chất lượng bộ dữ liệu thách thức (challenge data) được sử dụng để đánh giá mô hình cục bộ. Trong hệ thống FL-IDS, server không có quyền truy cập dữ liệu thô của client, do đó cần một bộ sinh dữ liệu chuyên biệt có khả năng tạo ra các mẫu lưu lượng mạng tổng hợp đa dạng, bao phủ cả lưu lượng bình thường lẫn nhiều loại tấn công, với phân phối đặc trưng gần sát dữ liệu thực.
+
+Các mô hình sinh dữ liệu học sâu cho dữ liệu dạng bảng (tabular data) đã phát triển mạnh trong những năm gần đây, chủ yếu theo nhiều hướng tiếp cận: mạng đối kháng sinh (GAN), mô hình khuếch tán (Diffusion), bộ tự mã hoá biến phân (VAE), luồng chuẩn hoá (Normalizing Flows), và mô hình ngôn ngữ lớn (LLM). Tuy nhiên, đối với dữ liệu dạng bảng -- vốn bao gồm cả biến liên tục lẫn biến phân loại với phân phối đa mode và tương quan phức tạp giữa các cột -- hai hướng tiếp cận nổi bật nhất hiện nay là GAN và Diffusion Model. Hướng GAN được đại diện bởi CTGAN~\cite{xu2019modeling}, kiến trúc được thiết kế riêng cho dữ liệu bảng với cơ chế sinh có điều kiện (conditional generation) giúp xử lý tốt các biến phân loại và phân phối đa mode, cùng WGAN-GP -- biến thể cải thiện tính ổn định huấn luyện thông qua phạt gradient (gradient penalty). Hướng Diffusion Model đã cho thấy khả năng vượt trội so với GAN trên nhiều bộ dữ liệu chuẩn, với các đại diện tiêu biểu: TabDDPM~\cite{kotelnikov2023tabddpm} áp dụng quy trình khử nhiễu ngược (denoising diffusion) trên dữ liệu bảng với kiến trúc MLP; TabSyn kết hợp VAE và mô hình khuếch tán trong không gian tiềm ẩn (latent diffusion) để tăng tốc sinh mẫu trong khi duy trì chất lượng cao; và ForestDiffusion thay thế mạng neural bằng các mô hình cây quyết định (XGBoost) để thực hiện bước khử nhiễu, cho phép chạy hoàn toàn trên CPU mà không cần GPU.
+
+Việc lựa chọn mô hình sinh phù hợp đòi hỏi cân nhắc đồng thời nhiều tiêu chí: độ trung thực phân phối (fidelity), độ bao phủ và đa dạng mẫu (coverage), khả năng sinh có điều kiện theo nhãn (conditional control), và chi phí tính toán (latency, bộ nhớ). Trong bối cảnh DT-Guard, mô hình sinh cần đáp ứng thêm yêu cầu đặc thù: dữ liệu thách thức phải đủ trung thực để phân biệt mô hình huấn luyện thực sự với mô hình sao chép, đồng thời đủ đa dạng để bao phủ các lớp tấn công hiếm mà mô hình toàn cục chưa xử lý tốt.
+
+\subsection{Poisoning Attack}
+
+Tấn công poisoning trong FL nhằm can thiệp vào quá trình huấn luyện, khiến mô hình toàn cục suy giảm chất lượng hoặc hành xử sai trên các mẫu mà kẻ tấn công quan tâm. Có hai hình thức chính: (i) làm bẩn dữ liệu cục bộ rồi huấn luyện bình thường (data poisoning) hoặc (ii) chỉnh sửa trực tiếp tham số/bản cập nhật mô hình gửi lên server (model poisoning). Với IDS, các tấn công có thể ở dạng không định hướng (giảm chung độ chính xác, tăng tỉ lệ bỏ sót tấn công) hoặc có định hướng (backdoor), trong đó mô hình vẫn hoạt động tốt trên phần lớn lưu lượng nhưng luôn phân loại sai một số mẫu đặc biệt chứa ``trigger''. Các tấn công hiện đại thường được thiết kế sao cho bản cập nhật độc hại vẫn nằm trong vùng mà các client lành tính thường xuất hiện, hoặc tối ưu khoảng cách, phương sai, và cấu trúc thống kê để vượt qua các bộ lọc dựa trên khoảng cách, trung vị hay clustering. Điều này khiến các chiến lược phòng thủ thuần tuý dựa trên tham số dễ bị qua mặt nếu không quan sát trực tiếp hành vi suy luận của mô hình.
+
+\subsection{Free-Rider Problem in Federated Learning}
+
+Trong FL, hiện tượng free-riding xảy ra khi một client gần như không thực sự huấn luyện trên dữ liệu cục bộ mà chỉ sao chép mô hình toàn cục (hoặc thực hiện huấn luyện tối thiểu) rồi gửi lại cho server. Các phương pháp tổng hợp truyền thống dựa trên số lượng mẫu dữ liệu (như FedAvg) hoặc độ tương đồng tham số không thể phân biệt free-rider với client lành tính, vì bản cập nhật của free-rider về mặt tham số rất gần với mô hình toàn cục và không có dấu hiệu bất thường rõ ràng. Hệ quả là free-rider được gán trọng số ngang bằng hoặc thậm chí cao hơn client có đóng góp thực chất, làm chậm quá trình hội tụ và giảm chất lượng mô hình toàn cục. Bài toán này đòi hỏi một cơ chế đánh giá đóng góp dựa trên năng lực suy luận thực tế, thay vì chỉ dựa trên các đặc trưng thống kê của tham số mô hình.
+
+\section{Related Works}
+
+Phần này trình bày tổng quan các nghiên cứu liên quan, được tổ chức theo ba hướng chính tương ứng với ba khoảng trống nghiên cứu mà DT-Guard nhắm đến: (1) các cơ chế phòng thủ chống tấn công poisoning trong FL, (2) ứng dụng Digital Twin trong FL và IoT, và (3) các phương pháp đánh giá mức đóng góp của client trong FL.
+
+\subsection{Robust Aggregation and Defense Against Poisoning Attacks}
+
+Các phương pháp phòng thủ truyền thống trong FL -- bao gồm Krum~\cite{blanchard2017machine}, Median, Trimmed Mean~\cite{yin2018byzantine} và GeoMed~\cite{pillutla2022robust} -- đã đặt nền móng cho bài toán tổng hợp vững (robust aggregation) bằng cách lọc các bản cập nhật dựa trên khoảng cách, trung vị hoặc trung vị hình học trên không gian tham số. Tuy nhiên, các phương pháp này đều mang tính thụ động và đã bị vượt qua bởi thế hệ tấn công mới, thúc đẩy sự ra đời của các cơ chế phòng thủ tiên tiến hơn.
+
+\textbf{SignGuard}~\cite{xu2022signguard} phân tích chiều dấu (sign direction) của gradient để nhận diện các bản cập nhật có hướng gradient bất thường, mang lại khả năng phòng thủ tốt trước một số tấn công hướng dữ liệu. Tuy nhiên, các tấn công tinh vi như LIE~\cite{baruch2019little} và Min-Max/Min-Sum~\cite{shejwalkar2021manipulating} đã được thiết kế để ``tối ưu ngược'' chiều dấu, sao cho bản cập nhật độc hại vẫn nằm trong vùng phân bố thống kê bình thường, khiến SignGuard mất hiệu lực.
+
+\textbf{ClipCluster}~\cite{zeng2024clipcluster} kết hợp cắt norm (clipping) với phân cụm (clustering) để phân nhóm các bản cập nhật trước khi tổng hợp, đạt hiệu quả cao trước nhiều loại tấn công. Tuy nhiên, ClipCluster vẫn hoạt động hoàn toàn trên không gian tham số với ngưỡng phân cụm cố định, dẫn đến hiệu năng giảm đáng kể trước các tấn công được thiết kế sao cho bản cập nhật độc hại nằm gần tâm phân phối của client lành tính.
+
+\textbf{LUP (Local Updates Purify)}~\cite{issa2025dtbfl}, được đề xuất trong framework DT-BFL, là phương pháp tiên tiến nhất trong nhóm này. LUP thiết kế pipeline lọc hai giai đoạn: giai đoạn đầu dùng MAD (Median Absolute Deviation) để loại outlier, giai đoạn sau dùng phân cụm phân cấp (AHC) kết hợp ``genuine criterion'' dựa trên Trust Score, độ tương đồng cập nhật và kurtosis. LUP đạt kết quả ấn tượng trên nhiều bộ dữ liệu (MNIST, ToN-IoT, CIFAR-10) ngay cả khi 50\% client là độc hại. Tuy nhiên, Trust Score của LUP được tính dựa trên mức lệch tham số so với mô hình toàn cục -- đây vẫn là phân tích thụ động và có thể bị đánh lừa bởi các tấn công được ``tối ưu ngược'' để duy trì khoảng cách nhỏ. Hơn nữa, cơ chế Trust Score dựa trên khoảng cách tham số lại vô tình \emph{thưởng cho free-rider}: bản cập nhật của free-rider gần như trùng với mô hình toàn cục nên nhận Trust Score cao nhất, gây méo trọng số tổng hợp.
+
+\textbf{Hạn chế chung.} Từ các phương pháp truyền thống đến các phương pháp tiên tiến nhất, tất cả đều phân tích tham số hoặc thống kê trên không gian tham số một cách thụ động, mà không trực tiếp quan sát hành vi suy luận (inference behavior) của mô hình. Trong điều kiện dữ liệu Non-IID mạnh, sai lệch tự nhiên giữa các client lành tính có thể tương đương với sai lệch do tấn công, dẫn đến tỉ lệ dương tính giả cao hoặc bỏ sót tấn công tinh vi. DT-Guard đề xuất chuyển từ phân tích thụ động sang kiểm chứng hành vi chủ động thông qua Digital Twin.
+
+\subsection{Digital Twin in Federated Learning and IoT}
+
+Digital Twin đã được tích hợp vào nhiều hệ thống FL cho IoT và lưới điện thông minh, nhưng chủ yếu đóng vai trò hỗ trợ hạ tầng hoặc giám sát thụ động.
+
+Trong lĩnh vực IoT, DT-BFL~\cite{issa2025dtbfl} xây dựng bản sao số (edge digital twin) cho các thiết bị IoT nhằm thu thập dữ liệu, huấn luyện mô hình cục bộ và tương tác với blockchain. Tuy nhiên, DT trong DT-BFL chỉ đóng vai trò phản ánh trạng thái thiết bị và lưu trữ dữ liệu -- không tham gia trực tiếp vào quy trình kiểm chứng hoặc lọc mô hình. Bước lọc poisoning (LUP) được thực hiện bằng thuật toán thống kê trên tham số, độc lập với DT. BAFL-DT~\cite{qu2021bafldt} triển khai DT trên cloud để sao chép thiết bị IoT, hỗ trợ tổng hợp mô hình và lưu trữ blockchain, nhưng không bao gồm cơ chế kiểm chứng chất lượng mô hình cục bộ.
+
+Trong lĩnh vực lưới điện thông minh, Zhang et al.~\cite{zhang2025ppsg} đề xuất PPSG, tích hợp DT với FL bất đồng bộ (AFL) cho smart grid. Tầng DT trong PPSG đóng vai trò tính toán trọng số mô hình, đo lường đóng góp của trạm (station), dự báo phụ tải và chẩn đoán lỗi. Tuy DT có tham gia đánh giá đóng góp, cơ chế đánh giá vẫn dựa trên độ lệch MMD giữa mô hình cục bộ và mô hình toàn cục -- một dạng phân tích tham số thụ động. Lu et al.~\cite{lu2020diten} giới thiệu DITEN, kiến trúc FL dựa trên blockchain và DT, trong đó DT được triển khai tại tầng biên để huấn luyện và tổng hợp mô hình, nhưng không kiểm chứng hành vi của các bản cập nhật trước khi tổng hợp.
+
+\textbf{Khoảng trống.} Trong các nghiên cứu hiện có, DT chủ yếu đóng vai trò mô phỏng hạ tầng, lưu trữ dữ liệu hoặc quản lý tài nguyên tính toán. Chưa có nghiên cứu nào khai thác DT như một \emph{môi trường kiểm thử hành vi chủ động} (active behavioral testing environment), nơi mô hình cục bộ được triển khai tạm thời và đánh giá trên các bộ dữ liệu thách thức tổng hợp trước khi được chấp nhận. DT-Guard lấp đầy khoảng trống này bằng cách sử dụng DT làm nền tảng để sinh dữ liệu thách thức và thực hiện kiểm định hành vi bốn lớp.
+
+\subsection{Contribution Evaluation and Fair Aggregation}
+
+Đánh giá mức đóng góp công bằng của từng client là một bài toán quan trọng nhưng chưa được giải quyết triệt để trong FL.
+
+\textbf{Phương pháp dựa trên tham số.} FedAvg~\cite{mcmahan2016communication} gán trọng số tỉ lệ với số lượng mẫu dữ liệu, hoàn toàn không phản ánh chất lượng đóng góp. Trust Score trong LUP~\cite{issa2025dtbfl} và PoC (Proof of Contribution) trong PPSG~\cite{zhang2025ppsg} đánh giá client dựa trên mức lệch tham số so với mô hình toàn cục. Tuy nhiên, cả hai cách tiếp cận đều có điểm yếu cố hữu: free-rider -- client gần như không huấn luyện mà chỉ sao chép mô hình toàn cục -- sẽ có bản cập nhật rất gần mô hình chung, dẫn đến nhận Trust Score cao và trọng số đóng góp lớn một cách bất hợp lý.
+
+\textbf{Phương pháp dựa trên lý thuyết trò chơi.} Giá trị Shapley~\cite{shapley1953value} từ lý thuyết trò chơi hợp tác đã được áp dụng trong FL để đo lường đóng góp biên (marginal contribution) của từng client. Zhang et al.~\cite{zhang2025bcsm} đề xuất HSDPS, kết hợp giá trị Shapley với DPoS (Delegated Proof-of-Stake) để phân bổ phần thưởng trong cơ chế đồng thuận blockchain. Tuy nhiên, Shapley trong HSDPS chỉ quyết định ai được bầu làm coordinator trong blockchain, không ảnh hưởng trực tiếp đến trọng số tổng hợp mô hình FL. Hơn nữa, tính toán giá trị Shapley chính xác đòi hỏi đánh giá tất cả liên minh con (coalition), có độ phức tạp hàm mũ và thường phải xấp xỉ -- dẫn đến nhiễu trong việc phân biệt các mức đóng góp tương đồng.
+
+\textbf{Khoảng trống.} Các phương pháp hiện có hoặc dựa trên khoảng cách tham số (dễ bị free-rider lợi dụng) hoặc dựa trên xấp xỉ Shapley (chi phí tính toán cao, nhiễu khi phân biệt đóng góp tương đồng). Chưa có phương pháp nào đánh giá đóng góp dựa trên \emph{năng lực suy luận thực tế} của mô hình client trên dữ liệu thách thức. DT-Guard đề xuất cơ chế DT-Driven Performance Weighting (DT-PW), trong đó Digital Twin đóng vai trò ``giám khảo'': mô hình của mỗi client được cho chạy suy luận trên cùng bộ dữ liệu thách thức với mô hình toàn cục, và mức độ khác biệt trong dự đoán được dùng làm thước đo nỗ lực huấn luyện thực tế. Client huấn luyện thật sự sẽ cho dự đoán khác mô hình chung, trong khi free-rider sao chép mô hình chung sẽ cho dự đoán gần như y hệt và bị loại bỏ tự động thông qua cổng nỗ lực (Effort Gate).
+
+\subsection{Summary and Positioning}
+
+Bảng~\ref{tab:related_comparison} tóm tắt so sánh DT-Guard với các nghiên cứu liên quan theo ba tiêu chí chính. Điểm khác biệt cốt lõi của DT-Guard nằm ở: (i) chuyển từ phân tích thụ động sang kiểm chứng hành vi chủ động trên Digital Twin, (ii) sử dụng bộ sinh dữ liệu thách thức chuyên biệt (dựa trên Diffusion Model) để tạo các kịch bản kiểm thử đa dạng, và (iii) đánh giá đóng góp dựa trên năng lực suy luận thực tế thay vì khoảng cách tham số.
+
+\begin{table}[t]
+\caption{So sánh DT-Guard với các nghiên cứu liên quan.}
+\label{tab:related_comparison}
+\centering
+\footnotesize
+\begin{tabular}{lcccc}
+\hline
+\textbf{Framework} & \textbf{Year} & \textbf{Kiểm chứng} & \textbf{Vai trò DT} & \textbf{Đánh giá đóng góp} \\
+\hline
+FedAvg~\cite{mcmahan2016communication} & 2017 & Không & Không & Theo số mẫu \\
+Krum~\cite{blanchard2017machine} & 2017 & Thụ động & Không & Chọn 1 client \\
+GeoMed~\cite{pillutla2022robust} & 2022 & Thụ động & Không & Không \\
+SignGuard~\cite{xu2022signguard} & 2022 & Thụ động & Không & Không \\
+ClipCluster~\cite{zeng2024clipcluster} & 2024 & Thụ động & Không & Theo cụm \\
+LUP~\cite{issa2025dtbfl} & 2025 & Thụ động & Hạ tầng & Trust Score (kh.cách) \\
+PPSG~\cite{zhang2025ppsg} & 2025 & Thụ động & Tính toán & PoC (MMD) \\
+HSDPS~\cite{zhang2025bcsm} & 2025 & Thụ động & Không & Shapley (consensus) \\
+\hline
+\textbf{DT-Guard (Ours)} & \textbf{2025} & \textbf{Chủ động} & \textbf{Kiểm thử} & \textbf{DT-PW (suy luận)} \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Methodology}
+\textbf{viet tong quan, mo ta bao nhieu thanh phan, thanh phan A lam gi? B lam gi? ngan gon, Hinh 1 mo ta tong quan ve kien truc mo hinh de xuat}
+
+\subsection{Overview}
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{nl2ps-architecture_final.pdf}
+    \caption{Overview of the proposed obfuscation-aware LLM training and evaluation framework.}
+    \label{fig:framework}
+\end{figure*}
+
+\section{Experiments and evaluation}
+\subsection{Research questions}
+\subsubsection{RQ1. To what extent can LLMs generate syntactically valid PowerShell payloads while adhering to explicit obfuscation control tags?}
+This question examines the instruction-following reliability of LLMs when guided by explicit obfuscation tags, focusing on syntactic validity and behavioral consistency of the generated payloads.
+
+
+\subsubsection{RQ2. How do different obfuscation techniques affect structural and statistical properties of generated scripts?}
+This question analyzes how distinct obfuscation techniques affect structural representations and distributional characteristics of generated scripts, enabling fine-grained comparison across transformat   ion categories.
+
+
+\subsubsection{RQ3. How effective are LLM-generated payloads in achieving evasion while maintaining behavioral consistency with the original commands?}
+This question evaluates the practical security implications of AI-generated scripts by measuring their evasion performance against representative detection engines while ensuring functional equivalence.
+
+\subsection{Experiment settings}
+\subsubsection{Environmental setup.}
+
+\subsubsection{Dataset.}
+
+\subsubsection{Evaluation metrics.}
+
+
+\subsection{Experimental results}
+\subsubsection{RQ1. To what extent can LLMs generate syntactically valid PowerShell payloads while adhering to explicit obfuscation control tags?}
+
+
+\subsubsection{RQ2. How do different obfuscation techniques affect structural and statistical properties of generated scripts?}
+
+
+\subsubsection{RQ3. How effective are LLM-generated payloads in achieving evasion while maintaining behavioral consistency with the original commands?}
+
+
+\section{Threats to validity}
+\subsection{External validity}
+
+
+\subsection{Internal validity}
+
+
+\subsection{Construct validity}
+
+
+\subsection{Conclusion validity}
+
+
+\section{Conclusion and future works}
+
+
+
+\subsubsection{\discintname}
+It is now necessary to declare any competing interests or to specifically
+state that the authors have no competing interests. Please place the
+statement with a bold run-in heading in small font size beneath the
+(optional) acknowledgments\footnote{If EquinOCS, our proceedings submission
+system, is used, then the disclaimer can be provided directly in the system.},
+for example: The authors have no competing interests to declare that are
+relevant to the content of this article. Or: Author A has received research
+grants from Company W. Author B has received a speaker honorarium from
+Company X and owns stock in Company Y. Author C is a member of committee Z.
+\end{credits}
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+% \bibliographystyle{splncs04}
+% \bibliography{mybibliography}
+%
+\bibliographystyle{splncs04}
+\bibliography{references}
+\end{document}
+
+
+
+
+
+
+
+
+
