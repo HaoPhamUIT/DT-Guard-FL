@@ -38,7 +38,6 @@ data/bk/
 
 
 # Machine Learning Models & Checkpoints
-*.pkl
 *.pth
 *.h5
 *.ckpt
@@ -62,3 +61,4 @@ Desktop.ini
 # Linux
 *~
 .directory
+results/README.md

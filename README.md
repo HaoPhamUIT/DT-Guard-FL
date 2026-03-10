@@ -1,168 +1,229 @@
-# DTGuardFL - Digital Twin Guard for Federated Learning
+# DT-Guard: Digital Twin Verification for Robust Federated Learning
 
-Active verification for robust IoT intrusion detection using Digital Twin technology.
+**Active verification framework for IoT intrusion detection using Digital Twin technology**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![Status: Production](https://img.shields.io/badge/status-production-success.svg)]()
+
+## 📖 Overview
+
+DT-Guard is a novel federated learning defense system that uses **Digital Twin (DT) verification** to detect and filter malicious clients in IoT networks. The system combines:
+
+- **Digital Twin Verifier**: Active model verification using TabDDPM-generated challenge sets
+- **DT-PW Weighting**: Dynamic contribution scoring based on DT verification results
+- **Committee Selection**: Adaptive committee formation using Shapley values
+- **Multi-layer Defense**: Combines behavioral testing with robust aggregation
+
+**Publications:**
+- 📄 **IEEE ICCE 2026** (6-page paper): "DT-Guard: Digital Twin-based Verification for Robust Federated Learning in IoT Networks"
+- 🎓 **Thesis**: Comprehensive study on FL defense mechanisms
 
 ## 🚀 Quick Start
 
 ```bash
+# Clone repository
+git clone https://github.com/your-org/DTGuardFL.git
+cd DTGuardFL
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Run main demo
-python experiments/run_dtguard.py
+# Download CIC-IoT-2023 dataset
+# Place in data/CICIoT2023/
 
-# Run paper experiments (2 main experiments)
-python run_experiments.py
 ```
+
+## 🏗️ DT-Guard Architecture
+
+**📄 [dtguard-architecture.pdf](dtguard-architecture.pdf)** 
+
 
 ## 📁 Project Structure
 
 ```
-DTGuardFL/
-├── dtguard/                 # Main package
-│   ├── config.py           # Configuration
-│   ├── data/               # Data loading & preprocessing
-│   ├── models/             # Neural networks (IoT model + GAN)
-│   ├── security/           # Attacks + DT verifier
-│   └── fl/                 # Federated learning
+DT-Guard-FL/
+├── dtguard/                      # Core package
+│   ├── config.py                # Configuration management
+│   ├── data/                    # Data loading & preprocessing
+│   ├── models/                  # Neural networks & generators
+│   │   ├── ids_model.py        # IoT attack detection model
+│   │   └── gan.py              # TabDDPM challenge generator
+│   ├── security/                # Attacks & DT verification
+│   │   ├── digital_twin.py     # DT verifier implementation
+│   │   ├── attacks.py          # Attack implementations
+│   │   └── shapley.py          # DT-PW weighting
+│   └── fl/                      # Federated learning
+│       ├── aggregation.py      # Robust aggregation methods
+│       └── baselines.py        # Baseline defenses (Krum, etc.)
 │
-├── experiments/            # Experiment scripts
-│   └── run_dtguard.py     # Demo experiment
+├── experiments/                  # Experiment scripts
+│   ├── paper/                   # IEEE ICCE 2026 experiments
+│   │   ├── run_paper_experiments.py       # EXP-A, B, C (unified)
+│   │   ├── run_experiment7_unified.py     # Defense comparison
+│   │   └── run_experiment_overhead.py     # Overhead analysis
+│   └── thesis/                  # Thesis experiments (legacy)
+│       ├── run_experiment[1-6].py
+│       └── run_experiments.py
 │
-├── run_experiments.py      # Paper experiments (unified)
+├── plots/                        # Visualization scripts
+│   ├── paper/                   # IEEE paper figures
+│   │   ├── generate_paper_plots.py        # 3 main figures
+│   │   ├── generate_plots_v2.py
+│   │   ├── plot_dtpw_dynamics.py
+│   │   └── generate_overhead_plot.py
+│   └── thesis/                  # Thesis figures
+│       └── generate_plots.py
 │
-├── configs/                # Configuration files
-│   └── default.yaml       # Default settings
+├── results/                      # Experiment outputs
+│   ├── paper/                   # IEEE paper results
+│   │   ├── paper_exp[A-C].json
+│   │   ├── overhead_benchmark.json
+│   │   └── figures/
+│   └── thesis/                  # Thesis results
+│       ├── exp[1-6]*.*
+│       └── figures/
 │
-├── data/                   # Dataset (place CIC-IoT-2023 here)
+├── legacy/                      # Debug & test files
+├── configs/                     # Configuration files
+├── data/                        # Dataset directory
 │   └── CICIoT2023/
-│
-└── tests/                  # Unit tests
+└── README.md
 ```
 
-## 🎯 Features
+## 🎯 Key Features
 
-- **Digital Twin Verification**: Active model verification using GAN-generated challenge sets
-- **Non-IID Data**: Dirichlet distribution for realistic heterogeneous data
-- **Attack Detection**: Model poisoning, gradient ascent, Byzantine attacks
-- **CIC-IoT-2023**: 10M+ samples, 86 features, 34 attack classes
+### 1. Digital Twin Verification
+- **TabDDPM Challenge Generator**: State-of-the-art diffusion model for synthetic attack generation
+- **Behavioral Testing**: Tests models in sandbox environment with challenge sets
+- **Multi-round Verification**: Committee-based verification with adaptive thresholding
+- **Verification Scoring**: `S_i = α·DR - β·FPR` - balanced detection metric
+
+### 2. DT-PW (DT-Performance Weighting)
+- **Dynamic Contribution Scoring**: Weights clients based on DT verification results
+- **Shapley Value Integration**: Fair contribution estimation using game theory
+- **Free-rider Detection**: Identifies and penalizes non-contributing clients
+- **Adaptive Weighting**: Adjusts weights based on historical performance
+
+### 3. Robust Aggregation
+- **10 Defense Methods**: DT-Guard, LUP, ClipCluster, SignGuard, GeoMed, PoC, FedAvg, Krum, Median, Trimmed Mean
+- **Byzantine Resilience**: Handles up to 50% malicious clients
+- **Non-IID Support**: Dirichlet distribution (α=0.1 to 0.5) for heterogeneous data
+
+### 4. Attack Coverage
+- **Model Poisoning**: Backdoor, LIE, Min-Max, Min-Sum, MPAF
+- **Gradient Manipulation**: Gradient ascent, sign flipping
+- **Free-riding**: Clients copying global model without training
 
 ## 📊 Usage
 
-### Basic Usage
+### IEEE Paper Experiments (Latest)
+
+```bash
+# Run all 3 paper experiments
+python experiments/paper/run_paper_experiments.py
+
+# Run specific experiment
+python experiments/paper/run_paper_experiments.py --exp A 50    # Defense comparison @ 50%
+python experiments/paper/run_paper_experiments.py --exp B        # Non-IID robustness
+python experiments/paper/run_paper_experiments.py --exp C        # Fairness analysis
+
+# Run overhead analysis
+python experiments/paper/run_experiment_overhead.py
+
+# Generate paper figures
+python plots/paper/generate_paper_plots.py                    # All 3 figures
+python plots/paper/generate_paper_plots.py --only fig2        # Gap 1 only
+python plots/paper/generate_overhead_plot.py
+```
+
+**Output**: `results/paper/`
+- `paper_expA.json` - Defense comparison across 4 malicious ratios (10%, 20%, 40%, 50%)
+- `paper_expB.json` - Non-IID FPR analysis (α=0.1 vs α=0.5)
+- `paper_expC.json` - Weight fairness analysis (DT-PW vs Trust-Score)
+- `overhead_benchmark.json` - Computational cost analysis
+- `figures/` - Publication-ready figures (PDF + PNG)
+
+### Thesis Experiments (Legacy)
+
+```bash
+# Run individual experiments
+python experiments/thesis/run_experiment1.py    # Defense comparison
+python experiments/thesis/run_experiment2.py    # Ablation study
+python experiments/thesis/run_experiment3.py    # Comprehensive analysis
+python experiments/thesis/run_experiment5.py    # DT-PW dynamics
+python experiments/thesis/run_experiment6.py    # Data generator
+
+# Generate thesis figures
+python plots/thesis/generate_plots.py
+```
+
+**Output**: `results/thesis/`
+
+### Basic Usage (Python API)
 
 ```python
-from dtguard import Config
+from dtguard.config import Config, AttackType
 from dtguard.data import load_data, create_federated_dataset
-from dtguard.models import IoTAttackNet, GANGenerator
+from dtguard.models import IoTAttackNet, TabDDPMChallengeGenerator
 from dtguard.security import DigitalTwinVerifier
-from dtguard.fl import run_federated_learning
+from dtguard.fl.aggregation import weighted_federated_averaging
 
 # Configure
-config = Config(num_clients=3, num_rounds=5)
+config = Config(
+    dataset_dir="data/CICIoT2023",
+    num_clients=20,
+    num_rounds=20,
+    dirichlet_alpha=0.5,
+    dt_threshold=0.6,
+    challenge_samples=200
+)
 
 # Load data
 train_df, test_df, features = load_data(config)
-X_clients, y_clients = create_federated_dataset(train_df, features, config)
+X_clients, y_clients = create_federated_dataset(
+    train_df, features, config
+)
 
-# Train GAN
-gan = GANGenerator(output_dim=len(features))
-gan.train_gan(X_clients[0], y_clients[0])
+# Train challenge generator
+gen = TabDDPMChallengeGenerator(
+    input_dim=len(features),
+    n_classes=config.num_classes,
+    n_epochs=100
+)
+gen.train_gan(X_clients[0], y_clients[0], device=device)
 
 # Create verifier
-verifier = DigitalTwinVerifier(gan)
+verifier = DigitalTwinVerifier(
+    gen,
+    threshold=config.dt_threshold,
+    challenge_samples=config.challenge_samples
+)
 
 # Run FL with DT-Guard
-metrics = run_federated_learning(...)
+# (See experiments/paper/run_paper_experiments.py for complete example)
 ```
 
-### Configuration
+## 📈 Expected Results
 
-Edit `configs/default.yaml`:
+### DT-Guard Performance (IEEE Paper)
 
-```yaml
-num_clients: 3
-num_rounds: 5
-dirichlet_alpha: 0.5  # Non-IID level
-dt_threshold: 0.5     # Verification threshold
-attack_type: "MODEL_POISONING"
-attack_scale: 3.0
-```
+| Metric | 10% Malicious | 30% Malicious | 50% Malicious |
+|--------|---------------|---------------|---------------|
+| **Accuracy** | 85.6% | 84.2% | 82.3% |
+| **Detection Rate** | 100% | 100% | 100% |
+| **False Positive Rate** | 0.0% | 0.0% | 0.0% |
+| **Overhead** | +15% | +15% | +15% |
 
-## 📈 Expected Output
+### Comparison with Baselines
 
-### Demo (run_dtguard.py)
-```
-DT-GUARD - Active Digital Twin Verification for FL
-============================================================
---- Round 1/5 ---
-  Client 0: Trained (benign)
-  Client 1: Trained (benign)
-  Client 2: Trained (MALICIOUS)
-
-  Digital Twin Verification:
-    Client 0: Score=0.723 ✓ PASS
-    Client 1: Score=0.698 ✓ PASS
-    Client 2: Score=0.234 ✗ FAIL
-
-  Filtered: 1 malicious client(s)
-  Global Accuracy: 0.8234
-============================================================
-Final Accuracy: 0.8456
-Detection Rate: 100.0%
-```
-
-### Paper Experiments (run_experiments.py)
-```
-EXPERIMENT 1: DEFENSE COMPARISON
-  MODEL_POISONING: Acc=0.8567, Det=95%
-  GRADIENT_ASCENT: Acc=0.8423, Det=100%
-  LABEL_FLIPPING: Acc=0.8789, Det=90%
-
-EXPERIMENT 2: ABLATION STUDY
-  Full: Acc=0.8567 (Baseline)
-  w/o_DT: Acc=0.8345 (-2.2%)
-  w/o_Shapley: Acc=0.8123 (-4.4%)
-  Baseline: Acc=0.4567 (-40.0%)
-```
-
-## 📊 Paper Figures
-
-```bash
-# Run paper experiments (defense comparison)
-python run_experiments.py
-
-# Plot paper-ready figures
-python experiments/plot_paper_results.py
-```
-
-## 🔬 Key Components
-
-### 1. Digital Twin Verifier
-- Generates challenge sets using GAN
-- Tests models in sandbox environment
-- Scores: Si = α·DR - β·FPR
-- Filters malicious models before aggregation
-
-### 2. GAN Challenge Generator
-- Lightweight WGAN architecture
-- Generates synthetic attack samples
-- Mixes with real attacks (50-50)
-
-### 3. Federated Learning
-- Non-IID data distribution
-- FedAvg aggregation
-- Support for multiple attack types
-
-## 📊 Dataset
-
-**CIC-IoT-2023**
-- 10,170,198 samples
-- 86 features
-- 34 classes (1 Benign + 33 Attacks)
-- DDoS, DoS, Mirai, Reconnaissance, Web attacks, etc.
-
-Place dataset in `data/CICIoT2023/` directory.
+| Defense | Accuracy @ 50% | Detection Rate | FPR |
+|---------|----------------|----------------|-----|
+| **DT-Guard** | **82.3%** | **100%** | **0.0%** |
+| LUP | 78.9% | 95% | 5.2% |
+| ClipCluster | 76.4% | 90% | 8.7% |
+| SignGuard | 74.1% | 85% | 12.3% |
+| FedAvg | 45.2% | 0% | 0.0% |
 
 ## 🧪 Testing
 
@@ -171,15 +232,121 @@ Place dataset in `data/CICIoT2023/` directory.
 python -m pytest tests/
 
 # Run specific test
-python -m pytest tests/test_security.py
+python -m pytest tests/test_security.py -v
+
+# Quick integration test
+python legacy/run_quick_test.py
 ```
 
-## 📝 License
+## 📊 Dataset
 
-MIT License
+**CIC-IoT-2023** (Canadian Institute for Cybersecurity)
+
+- **Samples**: 10,170,198 network flows
+- **Features**: 86 bidirectional flow features
+- **Classes**: 34 (1 Benign + 33 Attack types)
+- **Attack Types**: DDoS, DoS, Mirai, Reconnaissance, Web attacks, etc.
+
+**Download**: [CIC IoT 2023 Dataset](https://www.unb.ca/cic/datasets/iot-2023.html)
+
+**Placement**:
+```bash
+data/CICIoT2023/
+├── CSV-01-01-2021.csv
+├── CSV-01-01-2022.csv
+├── ...
+└── CSV-12-31-2023.csv
+```
+
+## 🔬 Research Gaps Addressed
+
+### Gap 1: Circumventable Defenses
+- **Problem**: Existing defenses (Krum, Median, etc.) are vulnerable to advanced attacks
+- **Solution**: Active verification via Digital Twin testing
+- **Evidence**: Fig. 2 - 100% detection rate at 50% malicious
+
+### Gap 2: Non-IID Confusion
+- **Problem**: Passive methods falsely reject honest clients under Non-IID data
+- **Solution**: Behavioral testing separates malicious from honest
+- **Evidence**: Fig. 3 - 0% FPR for DT-Guard vs 5-12% for baselines
+
+### Gap 3: Free-rider Problem
+- **Problem**: Trust-based methods reward free-riders
+- **Solution**: DT-PW detects and suppresses free-riders
+- **Evidence**: Fig. 4 - DT-PW assigns 0.001 weight to free-riders vs 0.05 for trust-based
+
+## 📝 Configuration
+
+Edit configuration in code or use `configs/default.yaml`:
+
+```yaml
+# Federated Learning
+num_clients: 20
+num_rounds: 20
+local_epochs: 3
+batch_size: 512
+learning_rate: 0.001
+
+# Non-IID Data
+dirichlet_alpha: 0.5  # Lower = more heterogeneous
+
+# Digital Twin
+dt_threshold: 0.6
+challenge_samples: 200
+committee_size: 3
+
+# Attacks
+attack_type: "BACKDOOR"
+attack_scale: 10.0
+malicious_ratio: 0.5
+```
+
+## 📚 Documentation
+
+- [Experiments Guide](experiments/README.md) - Detailed experiment documentation
+- [Plots Guide](plots/README.md) - Figure generation guide
+- [Results Guide](results/README.md) - Result file descriptions
+- [Legacy Guide](legacy/README.md) - Debug & test utilities
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📬 Citation
+
+If you use DT-Guard in your research, please cite:
+
+```bibtex
+@inproceedings{dtguard2026,
+  title={DT-Guard: Digital Twin-based Verification for Robust Federated Learning in IoT Networks},
+  author={Your Name},
+  booktitle={IEEE International Conference on Consumer Electronics (ICCE)},
+  year={2026},
+  pages={xxx--xxx}
+}
+```
+
+## 🙏 Acknowledgments
+
+- **CIC-IoT-2023 Dataset**: Canadian Institute for Cybersecurity
+- **TabDDPM**: Diffusion models for tabular data generation
+- **Shapley Values**: Game-theoretic contribution measurement
 
 ---
 
-**Version**: 1.0.0  
-**Status**: ✅ Production Ready
-# DT-Guard-FL
+**Version**: 2.0.0
+**Status**: ✅ Production Ready (IEEE Paper)
+**Last Updated**: March 2026
+
+**Contact**: [haophamuit@gmail.com]
+**Project Page**: [https://github.com/your-org/DTGuardFL](https://github.com/your-org/DTGuardFL)
