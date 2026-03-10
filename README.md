@@ -204,27 +204,6 @@ verifier = DigitalTwinVerifier(
 # (See experiments/paper/run_paper_experiments.py for complete example)
 ```
 
-## 📈 Expected Results
-
-### DT-Guard Performance (IEEE Paper)
-
-| Metric | 10% Malicious | 30% Malicious | 50% Malicious |
-|--------|---------------|---------------|---------------|
-| **Accuracy** | 85.6% | 84.2% | 82.3% |
-| **Detection Rate** | 100% | 100% | 100% |
-| **False Positive Rate** | 0.0% | 0.0% | 0.0% |
-| **Overhead** | +15% | +15% | +15% |
-
-### Comparison with Baselines
-
-| Defense | Accuracy @ 50% | Detection Rate | FPR |
-|---------|----------------|----------------|-----|
-| **DT-Guard** | **82.3%** | **100%** | **0.0%** |
-| LUP | 78.9% | 95% | 5.2% |
-| ClipCluster | 76.4% | 90% | 8.7% |
-| SignGuard | 74.1% | 85% | 12.3% |
-| FedAvg | 45.2% | 0% | 0.0% |
-
 ## 🧪 Testing
 
 ```bash
