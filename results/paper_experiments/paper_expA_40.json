@@ -1,0 +1,408 @@
+{
+  "ratio_label": "40%",
+  "n_malicious": 8,
+  "results": {
+    "DT-Guard": {
+      "No Attack": {
+        "accuracy": 0.726,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      },
+      "Backdoor": {
+        "accuracy": 0.7281,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "LIE": {
+        "accuracy": 0.724,
+        "detection_rate": 0.8063,
+        "fpr": 0.0
+      },
+      "Min-Max": {
+        "accuracy": 0.7292,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "Min-Sum": {
+        "accuracy": 0.7267,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "MPAF": {
+        "accuracy": 0.7291,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      }
+    },
+    "LUP": {
+      "No Attack": {
+        "accuracy": 0.7199,
+        "detection_rate": 0.0,
+        "fpr": 0.6625
+      },
+      "Backdoor": {
+        "accuracy": 0.7057,
+        "detection_rate": 1.0,
+        "fpr": 0.4292
+      },
+      "LIE": {
+        "accuracy": 0.7013,
+        "detection_rate": 1.0,
+        "fpr": 0.4333
+      },
+      "Min-Max": {
+        "accuracy": 0.7013,
+        "detection_rate": 1.0,
+        "fpr": 0.4333
+      },
+      "Min-Sum": {
+        "accuracy": 0.7013,
+        "detection_rate": 1.0,
+        "fpr": 0.4333
+      },
+      "MPAF": {
+        "accuracy": 0.7183,
+        "detection_rate": 1.0,
+        "fpr": 0.4125
+      }
+    },
+    "ClipCluster": {
+      "No Attack": {
+        "accuracy": 0.7165,
+        "detection_rate": 0.0,
+        "fpr": 0.0675
+      },
+      "Backdoor": {
+        "accuracy": 0.7007,
+        "detection_rate": 0.1125,
+        "fpr": 0.0083
+      },
+      "LIE": {
+        "accuracy": 0.663,
+        "detection_rate": 0.0,
+        "fpr": 0.1
+      },
+      "Min-Max": {
+        "accuracy": 0.7325,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "Min-Sum": {
+        "accuracy": 0.7325,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "MPAF": {
+        "accuracy": 0.0005,
+        "detection_rate": 0.0688,
+        "fpr": 0.0833
+      }
+    },
+    "SignGuard": {
+      "No Attack": {
+        "accuracy": 0.7157,
+        "detection_rate": 0.0,
+        "fpr": 0.34
+      },
+      "Backdoor": {
+        "accuracy": 0.6794,
+        "detection_rate": 0.4688,
+        "fpr": 0.2708
+      },
+      "LIE": {
+        "accuracy": 0.7327,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "Min-Max": {
+        "accuracy": 0.7327,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "Min-Sum": {
+        "accuracy": 0.7327,
+        "detection_rate": 1.0,
+        "fpr": 0.0
+      },
+      "MPAF": {
+        "accuracy": 0.7296,
+        "detection_rate": 1.0,
+        "fpr": 0.1792
+      }
+    },
+    "GeoMed": {
+      "No Attack": {
+        "accuracy": 0.681,
+        "detection_rate": 0.0,
+        "fpr": 0.1075
+      },
+      "Backdoor": {
+        "accuracy": 0.6947,
+        "detection_rate": 0.1187,
+        "fpr": 0.0833
+      },
+      "LIE": {
+        "accuracy": 0.7007,
+        "detection_rate": 0.0,
+        "fpr": 0.0833
+      },
+      "Min-Max": {
+        "accuracy": 0.7007,
+        "detection_rate": 0.6,
+        "fpr": 0.0625
+      },
+      "Min-Sum": {
+        "accuracy": 0.7007,
+        "detection_rate": 0.7438,
+        "fpr": 0.0625
+      },
+      "MPAF": {
+        "accuracy": 0.685,
+        "detection_rate": 1.0,
+        "fpr": 0.0792
+      }
+    },
+    "PoC": {
+      "No Attack": {
+        "accuracy": 0.7204,
+        "detection_rate": 0.0,
+        "fpr": 0.85
+      },
+      "Backdoor": {
+        "accuracy": 0.6697,
+        "detection_rate": 0.3625,
+        "fpr": 0.2583
+      },
+      "LIE": {
+        "accuracy": 0.0233,
+        "detection_rate": 0.0,
+        "fpr": 0.5917
+      },
+      "Min-Max": {
+        "accuracy": 0.6856,
+        "detection_rate": 0.0,
+        "fpr": 0.2917
+      },
+      "Min-Sum": {
+        "accuracy": 0.6755,
+        "detection_rate": 0.15,
+        "fpr": 0.1958
+      },
+      "MPAF": {
+        "accuracy": 0.7234,
+        "detection_rate": 0.9812,
+        "fpr": 0.0
+      }
+    },
+    "FedAvg": {
+      "No Attack": {
+        "accuracy": 0.7191,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      },
+      "Backdoor": {
+        "accuracy": 0.6827,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      },
+      "LIE": {
+        "accuracy": 0.6845,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      },
+      "Min-Max": {
+        "accuracy": 0.6917,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      },
+      "Min-Sum": {
+        "accuracy": 0.0233,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      },
+      "MPAF": {
+        "accuracy": 0.0567,
+        "detection_rate": 0.0,
+        "fpr": 0.0
+      }
+    },
+    "Krum": {
+      "No Attack": {
+        "accuracy": 0.6951,
+        "detection_rate": 0.0,
+        "fpr": 0.1
+      },
+      "Backdoor": {
+        "accuracy": 0.6837,
+        "detection_rate": 0.5188,
+        "fpr": 0.0833
+      },
+      "LIE": {
+        "accuracy": 0.0233,
+        "detection_rate": 0.0,
+        "fpr": 0.1
+      },
+      "Min-Max": {
+        "accuracy": 0.6837,
+        "detection_rate": 0.0,
+        "fpr": 0.0833
+      },
+      "Min-Sum": {
+        "accuracy": 0.6837,
+        "detection_rate": 0.0,
+        "fpr": 0.0833
+      },
+      "MPAF": {
+        "accuracy": 0.6837,
+        "detection_rate": 1.0,
+        "fpr": 0.0833
+      }
+    },
+    "Median": {
+      "No Attack": {
+        "accuracy": 0.7271,
+        "detection_rate": 0.0,
+        "fpr": 0.12
+      },
+      "Backdoor": {
+        "accuracy": 0.7178,
+        "detection_rate": 0.5,
+        "fpr": 0.0833
+      },
+      "LIE": {
+        "accuracy": 0.4419,
+        "detection_rate": 0.0938,
+        "fpr": 0.1
+      },
+      "Min-Max": {
+        "accuracy": 0.4317,
+        "detection_rate": 0.5,
+        "fpr": 0.0667
+      },
+      "Min-Sum": {
+        "accuracy": 0.4206,
+        "detection_rate": 0.5437,
+        "fpr": 0.0417
+      },
+      "MPAF": {
+        "accuracy": 0.7122,
+        "detection_rate": 1.0,
+        "fpr": 0.0833
+      }
+    },
+    "Trimmed Mean": {
+      "No Attack": {
+        "accuracy": 0.7153,
+        "detection_rate": 0.0,
+        "fpr": 0.2
+      },
+      "Backdoor": {
+        "accuracy": 0.7222,
+        "detection_rate": 0.5,
+        "fpr": 0.0
+      },
+      "LIE": {
+        "accuracy": 0.5189,
+        "detection_rate": 0.0,
+        "fpr": 0.3333
+      },
+      "Min-Max": {
+        "accuracy": 0.679,
+        "detection_rate": 0.0,
+        "fpr": 0.3333
+      },
+      "Min-Sum": {
+        "accuracy": 0.0233,
+        "detection_rate": 0.0,
+        "fpr": 0.3333
+      },
+      "MPAF": {
+        "accuracy": 0.0005,
+        "detection_rate": 0.4375,
+        "fpr": 0.0417
+      }
+    }
+  },
+  "timings": {
+    "DT-Guard": {
+      "No Attack": 286.2,
+      "Backdoor": 1430.8,
+      "LIE": 3643.5,
+      "Min-Max": 323.4,
+      "Min-Sum": 313.6,
+      "MPAF": 296.9
+    },
+    "LUP": {
+      "No Attack": 294.1,
+      "Backdoor": 742.9,
+      "LIE": 326.3,
+      "Min-Max": 318.2,
+      "Min-Sum": 302.8,
+      "MPAF": 296.2
+    },
+    "ClipCluster": {
+      "No Attack": 287.3,
+      "Backdoor": 719.4,
+      "LIE": 311.1,
+      "Min-Max": 1391.1,
+      "Min-Sum": 306.1,
+      "MPAF": 296.3
+    },
+    "SignGuard": {
+      "No Attack": 662.8,
+      "Backdoor": 697.7,
+      "LIE": 302.1,
+      "Min-Max": 325.2,
+      "Min-Sum": 306.3,
+      "MPAF": 295.8
+    },
+    "GeoMed": {
+      "No Attack": 328.9,
+      "Backdoor": 709.4,
+      "LIE": 299.0,
+      "Min-Max": 353.5,
+      "Min-Sum": 319.0,
+      "MPAF": 303.9
+    },
+    "PoC": {
+      "No Attack": 301.1,
+      "Backdoor": 711.5,
+      "LIE": 304.1,
+      "Min-Max": 329.5,
+      "Min-Sum": 310.0,
+      "MPAF": 300.1
+    },
+    "FedAvg": {
+      "No Attack": 296.7,
+      "Backdoor": 688.3,
+      "LIE": 1035.2,
+      "Min-Max": 318.2,
+      "Min-Sum": 307.8,
+      "MPAF": 295.9
+    },
+    "Krum": {
+      "No Attack": 409.3,
+      "Backdoor": 673.0,
+      "LIE": 299.3,
+      "Min-Max": 318.4,
+      "Min-Sum": 312.0,
+      "MPAF": 299.4
+    },
+    "Median": {
+      "No Attack": 345.5,
+      "Backdoor": 680.7,
+      "LIE": 306.8,
+      "Min-Max": 315.9,
+      "Min-Sum": 306.6,
+      "MPAF": 297.7
+    },
+    "Trimmed Mean": {
+      "No Attack": 319.3,
+      "Backdoor": 671.8,
+      "LIE": 739.2,
+      "Min-Max": 313.8,
+      "Min-Sum": 311.6,
+      "MPAF": 253.7
+    }
+  }
+}

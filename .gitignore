@@ -26,6 +26,9 @@ venv/
 ENV/
 env/
 
+data/CICIoT2023/
+data/bk/
+
 # PyCharm / IntelliJ IDEA
 .idea/
 
