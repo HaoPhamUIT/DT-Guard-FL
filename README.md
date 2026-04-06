@@ -117,7 +117,7 @@ DT-Guard-FL/
 
 ## 📊 Usage
 
-### IEEE Paper Experiments (Latest)
+### Experiments (Latest)
 
 ```bash
 # Run all 3 paper experiments
@@ -240,23 +240,6 @@ Contributions are welcome! Please:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📬 Citation
-
-If you use DT-Guard in your research, please cite:
-
-```bibtex
-@inproceedings{dtguard2026,
-  title={DT-Guard: Digital Twin-based Verification for Robust Federated Learning in IoT Networks},
-  author={Your Name},
-  booktitle={IEEE International Conference on Consumer Electronics (ICCE)},
-  year={2026},
-  pages={xxx--xxx}
-}
-```
 
 ## 🙏 Acknowledgments
 
