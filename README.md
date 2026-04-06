@@ -291,11 +291,3 @@ This project incorporates and extends several attack and defense methods from pr
 
 All implementations have been adapted and extended to work with our Digital Twin verification framework. Original implementations are credited to their respective authors.
 
----
-
-**Version**: 2.0.0
-**Status**: ✅ Production Ready (IEEE Paper)
-**Last Updated**: March 2026
-
-**Contact**: [haophamuit@gmail.com]
-**Project Page**: [https://github.com/your-org/DTGuardFL](https://github.com/your-org/DTGuardFL)
