@@ -144,7 +144,7 @@ def _draw_grouped_bars(ax, res, metric, attacks, show, colors):
     ax.grid(axis='y', alpha=0.25, linewidth=0.3)
 
 
-def plot_fig2(fmt='pdf'):
+def plot_fig2(fmt='png'):
     """Fig. 2 — Accuracy + Detection Rate at 50% malicious (Gap 1)."""
     res = _load_expA_50()
     if res is None:
@@ -175,7 +175,7 @@ def plot_fig2(fmt='pdf'):
 # ═══════════════════════════════════════════════════════════════════════
 #  FIG. 3 — False Positive Rate Heatmap at 50% Malicious (Gap 2)
 # ═══════════════════════════════════════════════════════════════════════
-def plot_fig3(fmt='pdf'):
+def plot_fig3(fmt='png'):
     """Fig. 3 — FPR heatmap at 50% malicious (Gap 2)."""
     res = _load_expA_50()
     if res is None:
@@ -252,7 +252,7 @@ def plot_fig3(fmt='pdf'):
 #  FIG. 3B — Non-IID FPR comparison (from EXP-B data)
 #  Optional: only generated if paper_expB.json exists.
 # ═══════════════════════════════════════════════════════════════════════
-def plot_fig3b(fmt='pdf'):
+def plot_fig3b(fmt='png'):
     """Fig. 3b — Non-IID FPR comparison α=0.1 vs α=0.5."""
     data = _load('paper_expB.json')
     if data is None:
@@ -313,7 +313,7 @@ def plot_fig3b(fmt='pdf'):
 # ═══════════════════════════════════════════════════════════════════════
 #  FIG. 4 — Weight Distribution per Client (Gap 3)
 # ═══════════════════════════════════════════════════════════════════════
-def plot_fig4(fmt='pdf'):
+def plot_fig4(fmt='png'):
     """Fig. 4 — Weight distribution per client (Gap 3)."""
     data = _load('paper_expC.json')
     if data is None:
@@ -372,7 +372,7 @@ def plot_fig4(fmt='pdf'):
 # ═══════════════════════════════════════════════════════════════════════
 #  FIG. 4B — Convergence Curves (from EXP-C data)
 # ═══════════════════════════════════════════════════════════════════════
-def plot_fig4b(fmt='pdf'):
+def plot_fig4b(fmt='png'):
     """Fig. 4b — Convergence with free-riders."""
     data = _load('paper_expC.json')
     if data is None:
@@ -430,7 +430,7 @@ def _load_overhead():
     return result_map, data.get('config', {})
 
 
-def plot_fig5(fmt='pdf'):
+def plot_fig5(fmt='png'):
     """Fig. 5 — Overhead: latency breakdown + memory comparison."""
     data, config = _load_overhead()
     if data is None:
@@ -703,4 +703,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

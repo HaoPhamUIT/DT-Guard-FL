@@ -67,7 +67,10 @@ rcParams.update({
     'lines.markersize': 4,
 })
 
-RESULTS = Path('results/paper')
+# ── Paths ──
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent.parent  # DT-Guard-FL/
+RESULTS = PROJECT_ROOT / 'results' / 'paper'
 FIGDIR  = RESULTS / 'figures'
 
 COLORS = {
