@@ -107,7 +107,7 @@ def main():
         print(f"  Accuracy: {results[name]['final_accuracy']:.4f}")
         print(f"  Detection: {results[name]['detection']:.2%}")
     
-    results_dir = Path('results/thesis')
+    results_dir = Path('results')
     results_dir.mkdir(parents=True, exist_ok=True)
     
     with open(results_dir / 'exp2_ablation_study.pkl', 'wb') as f:

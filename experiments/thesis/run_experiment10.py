@@ -425,7 +425,7 @@ def main():
     # =========================================================================
     # OUTPUT TABLES
     # =========================================================================
-    results_dir = Path('results/thesis')
+    results_dir = Path('results')
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # Save raw results

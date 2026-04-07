@@ -14,9 +14,9 @@ sns.set_palette("husl")
 
 def load_data():
     """Load experimental results."""
-    with open('results/thesis/exp1_defense_comparison.pkl', 'rb') as f:
+    with open('results/exp1_defense_comparison.pkl', 'rb') as f:
         exp1 = pickle.load(f)
-    with open('results/thesis/exp2_ablation_study.pkl', 'rb') as f:
+    with open('results/exp2_ablation_study.pkl', 'rb') as f:
         exp2 = pickle.load(f)
     return exp1, exp2
 
@@ -328,7 +328,7 @@ def main():
     exp1, exp2 = load_data()
     print("\n✓ Data loaded\n")
 
-    output_dir = Path('results/thesis/figures')
+    output_dir = Path('results/figures')
     output_dir.mkdir(parents=True, exist_ok=True)
 
     plot_accuracy_comparison(exp1, output_dir)

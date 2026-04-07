@@ -295,7 +295,7 @@ def main():
     print(f"Features: {len(feature_cols)}, Train: {len(train_df)}, Test: {len(test_df)}")
     
     # Create results directory
-    results_dir = Path('results/thesis')
+    results_dir = Path('results')
     results_dir.mkdir(parents=True, exist_ok=True)
     
     # Experiment 1

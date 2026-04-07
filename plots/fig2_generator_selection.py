@@ -4,8 +4,8 @@ Single figure justifying TabDDPM selection for 6-page IEEE paper.
 Radar chart covering 4 criterion groups from đề cương §3 Kịch bản 1:
   Fidelity, Coverage & Diversity, Conditional Control, Efficiency.
 
-Reads:  results/thesis/exp6_summary.json
-Saves:  results/thesis/figures/fig2_generator_selection.png / .pdf
+Reads:  results/exp6_summary.json
+Saves:  results/figures/fig2_generator_selection.png / .pdf
 """
 
 import json
@@ -17,9 +17,9 @@ from matplotlib.patches import Patch
 from pathlib import Path
 
 # ── Paths ──
-BASE = Path(__file__).resolve().parent.parent.parent
-RESULTS_DIR = BASE / 'results' / 'thesis'
-FIGURE_DIR = RESULTS_DIR / 'figures'
+BASE = Path(__file__).resolve().parent.parent
+RESULTS_DIR = BASE / 'results' / 'generic'
+FIGURE_DIR = BASE / 'results'/ 'generic' / 'figures'
 FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Load ──

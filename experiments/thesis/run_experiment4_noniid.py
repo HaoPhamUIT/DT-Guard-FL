@@ -330,10 +330,10 @@ def main():
 
     elapsed = datetime.now() - start
 
-    # Save results for generate_plots_v2.py
+    # Save results for plot_free_rider_weights.py
     import json
     from pathlib import Path
-    results_dir = Path('results/thesis')
+    results_dir = Path('results')
     results_dir.mkdir(parents=True, exist_ok=True)
     save_data = {'no_attack': {}, 'backdoor': {}}
     for d in DEFENSES:

@@ -60,8 +60,10 @@ SEED = 42
 N_SYNTHETIC = 10000
 N_REAL_SUBSAMPLE = 30000
 WGAN_EPOCHS = 300
-SYNTHETIC_DIR = Path('data/synthetic')
-RESULTS_DIR = Path('results/thesis')
+# Get project root for absolute paths
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+SYNTHETIC_DIR = PROJECT_ROOT / 'data' / 'synthetic'
+RESULTS_DIR = PROJECT_ROOT / 'results' / 'thesis'
 
 # Generator registry: (name, family, reference, year)
 GENERATORS = [
@@ -602,7 +604,10 @@ def main():
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # ---- Load data ----
-    cfg = Config(dataset_dir="data/CICIoT2023")
+    # Get project root (3 levels up from experiments/thesis)
+    project_root = Path(__file__).parent.parent.parent
+    data_path = project_root / "data" / "CICIoT2023"
+    cfg = Config(dataset_dir=str(data_path))
     train_df, test_df, feature_cols = load_data(cfg)
     target_col = 'Label'
     input_dim = len(feature_cols)
