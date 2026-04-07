@@ -63,8 +63,19 @@ def train_model(model, X_train, y_train, epochs=3, batch_size=256, lr=0.001, dev
         y_t = torch.LongTensor(y_train)
 
     dataset = TensorDataset(X_t, y_t)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                        num_workers=0, pin_memory=(str(device).startswith('cuda')))
+
+    # Adjust batch size for small datasets (need at least 2 for BatchNorm)
+    n_samples = len(dataset)
+    if n_samples < 2:
+        # Not enough data for training with BatchNorm
+        return 0.0
+
+    effective_batch_size = min(batch_size, max(2, n_samples // 2))
+    drop_last = n_samples >= effective_batch_size * 2
+
+    loader = DataLoader(dataset, batch_size=effective_batch_size, shuffle=True,
+                        num_workers=0, pin_memory=(str(device).startswith('cuda')),
+                        drop_last=drop_last)
 
     # Calculate class weights
     num_classes = model.fc4.out_features

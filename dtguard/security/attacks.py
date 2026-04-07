@@ -100,7 +100,7 @@ def apply_attack(weights: List[np.ndarray], attack_type: str, scale_factor: floa
         return [-1.0 * w for w in weights]
 
     elif attack_type == "LIE":
-        return _lie_attack(weights, all_client_weights, malicious_indices)
+        return _lie_attack(weights, all_client_weights, malicious_indices, scale_factor)
 
     elif attack_type == "MIN_MAX":
         return _minmax_attack(weights, all_client_weights, malicious_indices)
@@ -168,7 +168,7 @@ def _get_all_flat(all_client_weights, malicious_indices):
 #   return [lie_grad] * num_byzs
 # =============================================================================
 
-def _lie_attack(weights, all_client_weights, malicious_indices):
+def _lie_attack(weights, all_client_weights, malicious_indices, scale_factor=10.0):
     all_flat, benign_flat, byz_flat, shapes = _get_all_flat(all_client_weights, malicious_indices)
     if all_flat is None:
         flat = _flatten(weights)
@@ -179,7 +179,9 @@ def _lie_attack(weights, all_client_weights, malicious_indices):
     est_grads = all_flat  # shape (N, d)
     mu = np.mean(est_grads, axis=0)
     sigma = np.std(est_grads, axis=0)
-    z = 1.0  # pre-calculated z_max from LUP repo
+    # z scales with attack strength: z=1.0 at default scale_factor=10,
+    # higher scale → larger deviation from mean → stronger attack
+    z = max(1.0, scale_factor / 10.0)
     lie_grad = mu - z * sigma
     return _unflatten(lie_grad, shapes)
 

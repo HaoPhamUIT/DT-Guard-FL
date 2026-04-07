@@ -358,19 +358,20 @@ def clipcluster_aggregation(weights_list: List[List[np.ndarray]],
             updates[i] = updates[i] * (threshold / (l2norms[i] + 1e-6))
 
     # Step 2: Cosine distance matrix
+    # Pre-compute norms once for efficiency
+    norms = np.linalg.norm(updates, axis=1)
     dis_max = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
-            # cosine distance = 1 - cosine_similarity
-            dot = np.dot(updates[i], updates[j])
-            norm_i = np.linalg.norm(updates[i])
-            norm_j = np.linalg.norm(updates[j])
-            cos_sim = dot / (norm_i * norm_j + 1e-10)
-            d = 1.0 - cos_sim
-            # Clamp to valid range
-            d = np.clip(d, 0.0, 2.0)
-            if not np.isfinite(d):
+            denom = norms[i] * norms[j]
+            if denom < 1e-30 or not np.isfinite(denom):
+                # Zero or degenerate vector → maximally distant
                 d = 2.0
+            else:
+                cos_sim = np.dot(updates[i], updates[j]) / denom
+                d = np.clip(1.0 - cos_sim, 0.0, 2.0)
+                if not np.isfinite(d):
+                    d = 2.0
             dis_max[i, j] = d
             dis_max[j, i] = d
 

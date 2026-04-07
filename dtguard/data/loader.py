@@ -156,3 +156,86 @@ def _scale_features(df: pd.DataFrame, feature_cols: List[str]) -> pd.DataFrame:
     df[feature_cols] = df[feature_cols].astype(np.float32)
     df.loc[:, feature_cols] = scaler.fit_transform(df[feature_cols])
     return df
+
+
+def load_ton_iot_data(data_dir: str = "data/ToN-IoT_Data",
+                      test_size: float = 0.2,
+                      random_seed: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
+    """
+    Load and preprocess ToN-IoT dataset.
+
+    ToN-IoT dataset structure:
+        train_data.csv: Training features (no header)
+        train_label.csv: Training labels (no header)
+        test_data.csv: Test features (no header)
+        test_label.csv: Test labels (no header)
+
+    Args:
+        data_dir: Directory containing ToN-IoT CSV files
+        test_size: Fraction of training data to use for validation (not used if test_data exists)
+        random_seed: Random seed for reproducibility
+
+    Returns:
+        train_df: Training dataframe with features and Label column
+        test_df: Testing dataframe with features and Label column
+        feature_cols: List of feature column names (feature_0, feature_1, ...)
+    """
+    data_path = Path(data_dir)
+
+    # Load training data
+    train_data_file = data_path / "train_data.csv"
+    train_label_file = data_path / "train_label.csv"
+
+    if not train_data_file.exists() or not train_label_file.exists():
+        raise FileNotFoundError(f"ToN-IoT training files not found in {data_dir}")
+
+    print(f"Loading ToN-IoT training data from {data_dir}...")
+
+    # Load features and labels separately
+    train_features = pd.read_csv(train_data_file, header=None)
+    train_labels = pd.read_csv(train_label_file, header=None)
+
+    # Combine into single dataframe
+    train_df = train_features.copy()
+    train_df['Label'] = train_labels.iloc[:, 0].astype(int)
+
+    # Load test data if exists
+    test_data_file = data_path / "test_data.csv"
+    test_label_file = data_path / "test_label.csv"
+
+    if test_data_file.exists() and test_label_file.exists():
+        print(f"Loading ToN-IoT test data...")
+        test_features = pd.read_csv(test_data_file, header=None)
+        test_labels = pd.read_csv(test_label_file, header=None)
+
+        test_df = test_features.copy()
+        test_df['Label'] = test_labels.iloc[:, 0].astype(int)
+    else:
+        # Split from training data
+        from sklearn.model_selection import train_test_split
+        train_df, test_df = train_test_split(
+            train_df, test_size=test_size, random_state=random_seed,
+            stratify=train_df['Label']
+        )
+
+    # Create feature column names and rename columns
+    n_features = train_df.shape[1] - 1  # Exclude Label
+    feature_cols = [f"feature_{i}" for i in range(n_features)]
+
+    # Rename columns (0, 1, 2, ... -> feature_0, feature_1, ...)
+    train_df.columns = feature_cols + ['Label']
+    test_df.columns = feature_cols + ['Label']
+
+    # Drop NaN and infinite values
+    train_df = train_df.replace([np.inf, -np.inf], np.nan).dropna()
+    test_df = test_df.replace([np.inf, -np.inf], np.nan).dropna()
+
+    # Scale features
+    train_df = _scale_features(train_df, feature_cols)
+    test_df = _scale_features(test_df, feature_cols)
+
+    print(f"✓ Train: {len(train_df)} samples, Test: {len(test_df)} samples")
+    print(f"✓ Features: {len(feature_cols)}, Classes: {train_df['Label'].nunique()}")
+    print(f"✓ Class distribution: {train_df['Label'].value_counts().to_dict()}")
+
+    return train_df, test_df, feature_cols

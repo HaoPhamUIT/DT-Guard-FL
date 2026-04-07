@@ -45,9 +45,10 @@ class DefenseType(str, Enum):
 @dataclass
 class Config:
     """Unified configuration for DTGuardFL."""
-    
+
     # Data
     dataset_dir: str = "data/CICIoT2023"
+    dataset_type: str = "CICIoT2023"  # "CICIoT2023" or "ToN-IoT"
     cache_file: str = "training_data.pkl"
     test_size: float = 0.2
     
