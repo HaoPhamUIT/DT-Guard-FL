@@ -160,63 +160,6 @@ python plots/thesis/generate_plots.py
 
 **Output**: `results/thesis/`
 
-### Basic Usage (Python API)
-
-```python
-from dtguard.config import Config, AttackType
-from dtguard.data import load_data, create_federated_dataset
-from dtguard.models import IoTAttackNet, TabDDPMChallengeGenerator
-from dtguard.security import DigitalTwinVerifier
-from dtguard.fl.aggregation import weighted_federated_averaging
-
-# Configure
-config = Config(
-    dataset_dir="data/CICIoT2023",
-    num_clients=20,
-    num_rounds=20,
-    dirichlet_alpha=0.5,
-    dt_threshold=0.6,
-    challenge_samples=200
-)
-
-# Load data
-train_df, test_df, features = load_data(config)
-X_clients, y_clients = create_federated_dataset(
-    train_df, features, config
-)
-
-# Train challenge generator
-gen = TabDDPMChallengeGenerator(
-    input_dim=len(features),
-    n_classes=config.num_classes,
-    n_epochs=100
-)
-gen.train_gan(X_clients[0], y_clients[0], device=device)
-
-# Create verifier
-verifier = DigitalTwinVerifier(
-    gen,
-    threshold=config.dt_threshold,
-    challenge_samples=config.challenge_samples
-)
-
-# Run FL with DT-Guard
-# (See experiments/paper/run_paper_experiments.py for complete example)
-```
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-python -m pytest tests/
-
-# Run specific test
-python -m pytest tests/test_security.py -v
-
-# Quick integration test
-python legacy/run_quick_test.py
-```
-
 ## 📊 Dataset
 
 **CIC-IoT-2023** (Canadian Institute for Cybersecurity)
@@ -320,6 +263,33 @@ If you use DT-Guard in your research, please cite:
 - **CIC-IoT-2023 Dataset**: Canadian Institute for Cybersecurity
 - **TabDDPM**: Diffusion models for tabular data generation
 - **Shapley Values**: Game-theoretic contribution measurement
+
+## 📚 Source Code & References
+
+### Attack & Defense Implementations
+
+This project incorporates and extends several attack and defense methods from prior research:
+
+**[LOP: Local Update Pruning](https://github.com/UNSW-Canberra-2023/LOP)**
+*Byzantine-Resilient Federated Learning - UNSW Canberra*
+- **Attacks Used**: Backdoor, LIE, Min-Max, Min-Sum, MPAF
+- **Defenses Used**: LUP, ClipCluster, SignGuard, GeoMed, PoC
+- **Reference**: Yang et al., "Local Update Pruning: Byzantine-Resilient Federated Learning", IEEE TDSC (2023)
+
+**Defense Methods Adapted:**
+- **LUP** (Local Update Pruning): Trust score-based aggregation
+- **ClipCluster**: Clustering-based defense
+- **SignGuard**: Sign-based robust aggregation
+- **GeoMed**: Geometric median aggregation
+- **PoC** (Peer-Comparison): Contribution-based weighting
+
+**Additional Baselines:**
+- **Krum**: Multi-dimensional Krum aggregation (Blanchard et al., 2017)
+- **Median**: Coordinate-wise median aggregation
+- **Trimmed Mean**: Trimmed mean aggregation
+- **FedAvg**: Standard Federated Averaging
+
+All implementations have been adapted and extended to work with our Digital Twin verification framework. Original implementations are credited to their respective authors.
 
 ---
 

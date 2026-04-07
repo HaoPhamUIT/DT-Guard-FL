@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-generate_overhead_plot.py — Fig. 5: Computational Overhead (single compact figure)
-===================================================================================
-Two-panel single-column figure showing ALL overhead metrics from benchmark JSON:
+generate_overhead_plot.py — Performance Summary (2-panel figure)
+=======================================================================
+Two-panel single-column figure combining:
   (a) Per-round total time breakdown: training vs server-side aggregation
-  (b) Server-side overhead detail (ms) with accuracy and peak memory annotations
-
-Reads from results/paper_experiments/overhead_benchmark.json (real data only).
-Run 'python run_experiment_overhead.py' first to generate the data.
+  (b) Memory efficiency comparison across defense mechanisms
 
 Output:
-  results/fig5_overhead.{pdf,png}
+  results/fig9_performance_summary.{pdf,png}
 
 Usage:
     python generate_overhead_plot.py
@@ -27,6 +24,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from matplotlib.patches import Patch
 
 # ── IEEE single-column style ──
 IEEE_COL_W = 3.5
@@ -47,9 +45,12 @@ rcParams.update({
     'axes.linewidth': 0.6,
 })
 
+SCRIPT_DIR = Path(__file__).parent.parent.parent
 SEARCH_PATHS = [
     Path('results/paper/overhead_benchmark.json'),
-    Path('results/overhead_benchmark.json'),  # fallback
+    Path('results/overhead_benchmark.json'),
+    SCRIPT_DIR / 'results' / 'paper' / 'overhead_benchmark.json',
+    SCRIPT_DIR / 'results' / 'overhead_benchmark.json',
 ]
 
 FIGDIR = Path('results/paper/figures')
@@ -68,7 +69,7 @@ DEFENSE_ORDER = [
 
 
 def load_overhead_data():
-    """Load benchmark results from JSON. Exits if no file found."""
+    """Load benchmark results from JSON."""
     for p in SEARCH_PATHS:
         if p.exists():
             print(f"  Loading results from {p}")
@@ -92,48 +93,49 @@ def load_overhead_data():
     print("  ✗ No benchmark data found. Searched:")
     for p in SEARCH_PATHS:
         print(f"    - {p}")
-    print("\n  Run 'python run_experiment_overhead.py' first to generate real data.")
     sys.exit(1)
 
 
-def plot_overhead(data, config, fmt='pdf', dpi=300):
+def plot_performance_summary(data, config, fmt='pdf', dpi=300):
+    """Create 2-panel performance summary figure."""
     FIGDIR.mkdir(parents=True, exist_ok=True)
 
     defenses = [d for d in DEFENSE_ORDER if d in data]
     n = len(defenses)
-
-    train_s    = [data[d]['train_per_round_s'] for d in defenses]
-    agg_s      = [data[d]['agg_per_round_s'] for d in defenses]
-    agg_ms     = [a * 1000 for a in agg_s]
-    total_s    = [data[d]['total_time_s'] for d in defenses]
-    accuracies = [data[d]['accuracy'] * 100 for d in defenses]
-    peak_mems  = [data[d]['peak_mem_mb'] for d in defenses]
-    colors     = [COLORS.get(d, '#888') for d in defenses]
-
-    dtg_verify_ms = data.get('DT-Guard', {}).get('dt_verify_per_round_s', 0) * 1000
-    dtg_pw_ms     = data.get('DT-Guard', {}).get('dt_pw_per_round_s', 0) * 1000
-    dtg_i = defenses.index('DT-Guard') if 'DT-Guard' in defenses else -1
-
     num_rounds = config.get('num_rounds', 20)
     num_clients = config.get('num_clients', 20)
     attack = config.get('attack', 'LIE')
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(IEEE_COL_W, 4.8),
-                                    gridspec_kw={'height_ratios': [1, 1.2]})
-    fig.subplots_adjust(hspace=0.50)
+    # Create figure with 2 subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(IEEE_COL_W, 5.5),
+                                    gridspec_kw={'height_ratios': [1, 1.1]})
+    fig.subplots_adjust(hspace=0.45, left=0.12, right=0.96, top=0.95, bottom=0.08)
+
+    # ═══════════════════════════════════════════════════════════════
+    # Panel (a): Per-round total time breakdown
+    # ═══════════════════════════════════════════════════════════════
+    train_s = [data[d]['train_per_round_s'] for d in defenses]
+    agg_s = [data[d]['agg_per_round_s'] for d in defenses]
+    agg_ms = [a * 1000 for a in agg_s]
+    total_s = [data[d]['total_time_s'] for d in defenses]
+    colors = [COLORS.get(d, '#888') for d in defenses]
+
+    dtg_verify_ms = data.get('DT-Guard', {}).get('dt_verify_per_round_s', 0) * 1000
+    dtg_pw_ms = data.get('DT-Guard', {}).get('dt_pw_per_round_s', 0) * 1000
+    dtg_i = defenses.index('DT-Guard') if 'DT-Guard' in defenses else -1
 
     y = np.arange(n)
     bar_h = 0.50
 
-    # ═══════════════════════════════════════════════════════════════
-    # Panel (a): Per-round total time = Training (stacked) + Agg
-    # ═══════════════════════════════════════════════════════════════
+    # Training bars (bottom layer)
     bars_train = ax1.barh(y, train_s, bar_h,
                           color='#BBDEFB', edgecolor='#1565C0', linewidth=0.4,
                           label='Client training')
 
+    # Aggregation bars (top layer)
     for i in range(n):
         if i == dtg_i and dtg_verify_ms > 0:
+            # DT-Guard with components
             ax1.barh(y[i], dtg_verify_ms / 1000, bar_h, left=train_s[i],
                      color='#EF5350', edgecolor='#333', linewidth=0.3)
             ax1.barh(y[i], dtg_pw_ms / 1000, bar_h,
@@ -148,75 +150,90 @@ def plot_overhead(data, config, fmt='pdf', dpi=300):
     for i in range(n):
         total_i = train_s[i] + agg_s[i]
         ax1.text(total_i + max_total * 0.01, y[i],
-                 f'{total_s[i]:.0f}s total',
+                 f'{total_s[i]:.0f}s',
                  va='center', ha='left', fontsize=5, color='#555')
 
     ax1.set_yticks(y)
     ax1.set_yticklabels(defenses, fontsize=6.5)
     ax1.set_xlabel('Per-round time (s)')
     ax1.invert_yaxis()
-    ax1.set_xlim(0, max_total * 1.22)
+    ax1.set_xlim(0, max_total * 1.18)
     ax1.grid(axis='x', alpha=0.2)
     ax1.grid(axis='y', visible=False)
-    ax1.set_title(f'(a) Per-round latency breakdown ({num_clients} clients, {attack} attack)',
-                  fontsize=7.5, pad=5)
+    ax1.set_title(f'(a) Per-round latency breakdown ({num_clients} clients)',
+                  fontsize=8, pad=5, fontweight='bold')
 
     # Legend for panel (a)
-    from matplotlib.patches import Patch
     legend_a = [
-        Patch(facecolor='#BBDEFB', edgecolor='#1565C0', label='Client training'),
-        Patch(facecolor='#EF5350', edgecolor='#333', label='DT Verification'),
-        Patch(facecolor='#FF8A65', edgecolor='#333', label='DT-PW Scoring'),
-        Patch(facecolor='#9E9E9E', edgecolor='#333', label='Baseline agg.'),
+        Patch(facecolor='#BBDEFB', edgecolor='#1565C0', label='Training'),
+        Patch(facecolor='#EF5350', edgecolor='#333', label='DT Verif.'),
+        Patch(facecolor='#FF8A65', edgecolor='#333', label='DT-PW'),
+        Patch(facecolor='#9E9E9E', edgecolor='#333', label='Agg.'),
     ]
     ax1.legend(handles=legend_a, loc='lower right', framealpha=0.9,
                fontsize=5.5, ncol=2, borderpad=0.3, handlelength=1.0)
 
     # ═══════════════════════════════════════════════════════════════
-    # Panel (b): Server-side overhead (ms) + accuracy + memory
+    # Panel (b): Memory efficiency comparison
     # ═══════════════════════════════════════════════════════════════
+    peak_mems = np.array([data[d]['peak_mem_mb'] for d in defenses])
+    mem_overheads = np.array([data[d]['mem_overhead_mb'] for d in defenses])
+
+    x = np.arange(n)
+    bar_width = 0.35
+
+    # Peak memory bars (left)
+    bars1 = ax2.bar(x - bar_width/2, peak_mems, bar_width,
+                   label='Peak memory',
+                   color=[c if d != 'DT-Guard' else '#D32F2F' for c, d in zip(colors, defenses)],
+                   edgecolor=['#B71C1C' if d == 'DT-Guard' else '#333' for d in defenses],
+                   linewidth=[1.5 if d == 'DT-Guard' else 0.6 for d in defenses],
+                   alpha=0.85)
+
+    # Memory overhead bars (right) - with hatch pattern
+    bars2 = ax2.bar(x + bar_width/2, mem_overheads, bar_width,
+                   label='Mem. overhead',
+                   color='#E0E0E0',
+                   edgecolor='#616161',
+                   linewidth=0.6,
+                   hatch='///',
+                   alpha=0.7)
+
+    # Add value labels on bars
     for i in range(n):
-        if i == dtg_i and dtg_verify_ms > 0:
-            ax2.barh(y[i], dtg_verify_ms, bar_h,
-                     color='#EF5350', edgecolor='#333', linewidth=0.4)
-            ax2.barh(y[i], dtg_pw_ms, bar_h, left=dtg_verify_ms,
-                     color='#FF8A65', edgecolor='#333', linewidth=0.4)
-        else:
-            ax2.barh(y[i], agg_ms[i], bar_h,
-                     color=colors[i], edgecolor='#333', linewidth=0.4)
+        # Peak memory labels
+        ax2.text(x[i] - bar_width/2, peak_mems[i] + 8,
+               f'{peak_mems[i]:.0f}',
+               ha='center', va='bottom', fontsize=5.5,
+               fontweight='bold' if defenses[i] == 'DT-Guard' else 'normal',
+               color='#D32F2F' if defenses[i] == 'DT-Guard' else '#424242')
 
-    max_ms = max(agg_ms)
-    for i in range(n):
-        # Accuracy + memory annotation at end of bar
-        label = f'{accuracies[i]:.1f}% | {peak_mems[i]:.0f} MB'
-        x_pos = agg_ms[i] + max_ms * 0.03
-        ax2.text(x_pos, y[i], label, va='center', ha='left',
-                 fontsize=5.5, color='#333')
+        # Memory overhead labels (only if > 0)
+        if mem_overheads[i] > 0:
+            ax2.text(x[i] + bar_width/2, mem_overheads[i] + 3,
+                   f'{mem_overheads[i]:.1f}',
+                   ha='center', va='bottom', fontsize=5, color='#424242')
 
-        # Overhead value inside bar (if wide enough)
-        if agg_ms[i] > max_ms * 0.15:
-            ax2.text(agg_ms[i] * 0.5, y[i], f'{agg_ms[i]:.1f}',
-                     va='center', ha='center', fontsize=5.5, color='white',
-                     fontweight='bold')
-        else:
-            ax2.text(max(agg_ms[i], 0.5) + max_ms * 0.005, y[i] + bar_h * 0.55,
-                     f'{agg_ms[i]:.1f}',
-                     va='bottom', ha='left', fontsize=4.5, color='#888')
+    # Labels and title
+    ax2.set_xlabel('Defense mechanism', fontsize=8)
+    ax2.set_ylabel('Memory (MB)', fontsize=8)
+    ax2.set_title('(b) Memory efficiency comparison',
+                  fontsize=8, pad=5, fontweight='bold')
 
-    ax2.set_yticks(y)
-    ax2.set_yticklabels(defenses, fontsize=6.5)
-    ax2.set_xlabel('Server-side aggregation overhead (ms)')
-    ax2.invert_yaxis()
-    ax2.set_xlim(0, max_ms * 1.65)
-    ax2.grid(axis='x', alpha=0.2)
-    ax2.grid(axis='y', visible=False)
-    ax2.set_title('(b) Server-side overhead with accuracy and peak memory',
-                  fontsize=7.5, pad=5)
+    # X-axis labels (rotated for readability)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(defenses, rotation=45, ha='right', fontsize=6.5)
 
-    # Annotation column headers
-    ax2.text(max_ms * 1.30, -0.7, 'Acc. | Peak RSS',
-             va='center', ha='center', fontsize=5.5, color='#666',
-             fontstyle='italic')
+    # Grid
+    ax2.grid(axis='y', alpha=0.2, linestyle='-', linewidth=0.5)
+    ax2.set_axisbelow(True)
+
+    # Legend
+    ax2.legend(loc='upper right', fontsize=5.5, framealpha=0.95,
+              borderpad=0.3, handlelength=0.8)
+
+    # Set y-axis limit
+    ax2.set_ylim(0, max(peak_mems) * 1.12)
 
     # ─── Save ───
     for ext in (['pdf', 'png'] if fmt == 'pdf' else [fmt]):
@@ -233,14 +250,13 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  Fig. 5: Overhead plot for DT-Guard paper")
+    print("  Fig. 5: Performance Summary (2-panel)")
     print("=" * 60)
 
     data, config = load_overhead_data()
-    plot_overhead(data, config, fmt=args.fmt, dpi=args.dpi)
+    plot_performance_summary(data, config, fmt=args.fmt, dpi=args.dpi)
     print("  Done.")
 
 
 if __name__ == '__main__':
     main()
-

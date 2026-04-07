@@ -33,7 +33,7 @@ plt.rcParams.update({
 })
 sns.set_palette("husl")
 
-RESULTS_DIR = Path('results/paper')
+RESULTS_DIR = Path('results/thesis')
 FIGURE_DIR = RESULTS_DIR / 'figures'
 
 DEFENSE_COLORS = {
