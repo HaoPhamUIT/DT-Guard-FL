@@ -173,10 +173,9 @@ ax.set_title('Challenge Data Generator Comparison\n(min-max normalized across 4 
              fontweight='bold', pad=25, fontsize=11)
 
 # ── Save ──
-for ext in ('png', 'pdf'):
-    out = FIGURE_DIR / f'fig_generator_selection.{ext}'
-    fig.savefig(out, bbox_inches='tight', facecolor='white')
-    print(f'  Saved {out}')
+out = FIGURE_DIR / f'fig_generator_selection.png'
+fig.savefig(out, bbox_inches='tight', facecolor='white')
+print(f'  Saved {out}')
 
 plt.close()
 print('  Done.')

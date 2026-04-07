@@ -245,7 +245,7 @@ def plot_performance_summary(data, config, fmt='pdf', dpi=300):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--fmt', default='pdf', choices=['pdf', 'png'])
+    parser.add_argument('--fmt', default='png', choices=['pdf', 'png'])
     parser.add_argument('--dpi', type=int, default=300)
     args = parser.parse_args()
 

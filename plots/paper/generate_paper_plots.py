@@ -472,8 +472,8 @@ def main():
         description='Generate 3 figures for DT-Guard IEEE paper (6 pages)')
     parser.add_argument('--only', nargs='*', choices=list(PLOT_REGISTRY.keys()),
                         help='Generate specific figures only')
-    parser.add_argument('--fmt', default='pdf', choices=['pdf', 'png', 'svg'],
-                        help='Output format (default: pdf)')
+    parser.add_argument('--fmt', default='png', choices=['pdf', 'png', 'svg'],
+                        help='Output format (default: png)')
     parser.add_argument('--dpi', type=int, default=300)
     parser.add_argument('--inline', action='store_true',
                         help='Print inline numbers for paper prose')
