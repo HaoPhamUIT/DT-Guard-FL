@@ -1,0 +1,104 @@
+% ============================================================================
+% FOUR-LAYER BEHAVIORAL VERIFICATION - GENERALIZED EQUATIONS
+% ============================================================================
+% This file contains the generalized Trust-Score equations with tunable
+% hyperparameters. Replace Section 3.3 in IEEE-conference-template-062824.tex
+% ============================================================================
+% Usage:
+%   1. Copy this content to replace \subsection{Four-Layer Behavioral Verification}
+%   2. Update equation label references if needed
+%   3. Add to experimental section: "We set $\alpha=0.7$, $\lambda_{\text{bd}}=0.3$..."
+% ============================================================================
+
+\subsection{Four-Layer Behavioral Verification}\label{sec:fourlayer}
+
+Every candidate update~$\mathbf{w}_i^{(t)}$ is loaded into the DT and evaluated on~$\mathcal{D}_{\text{ch}}$ through four complementary checks. The mechanism is controlled by hyperparameters: $\alpha \in [0,1]$ balances performance vs.\ parameter similarity; $\lambda_{\text{bd}}, \lambda_{\text{stab}} \in \mathbb{R}^+$ are penalty coefficients; $D_{\max} > 0$ normalizes parameter distance; and $\theta_{\text{div}} > 0$ is the divergence threshold for strict mode.
+
+\paragraph{Layer~1: IDS Performance} The model is evaluated on the challenge set using binary classification (benign vs.\ attack). The F1-score serves as the primary quality signal:
+\begin{equation}
+    s_i^{\text{ids}} = \text{F1}\bigl(\mathbf{w}_i^{(t)},\; \mathcal{D}_{\text{ch}}\bigr) \in [0,1].
+\label{eq:ids}
+\end{equation}
+
+\paragraph{Layer~2: Backdoor Resistance} Rather than measuring ASR directly (which requires known trigger labels), the DT monitors the variance of prediction confidence across the challenge set. A clean model produces stable confidence; a backdoor-infected model shows abnormally high variance when triggered samples are present. The penalty is:
+\begin{equation}
+    \delta_i^{\text{bd}} =
+    \begin{cases}
+        \lambda_{\text{bd}}, & \text{if } \sigma\bigl(\text{conf}(\mathbf{w}_i^{(t)}, \mathcal{D}_{\text{ch}})\bigr) > \tau_{\text{bd}}, \\
+        0, & \text{otherwise},
+    \end{cases}
+\label{eq:bd}
+\end{equation}
+where $\sigma(\cdot)$ is the standard deviation of softmax confidence on~$\mathcal{D}_{\text{ch}}$ and $\tau_{\text{bd}}$ is the confidence variance threshold.
+
+\paragraph{Layer~3: Parameter Deviation} We compute the normalized $\ell_2$ distance between the client update and the global model:
+\begin{equation}
+    \Delta_i^{(t)} = \frac{\|\mathbf{w}_i^{(t)} - \mathbf{w}^{(t-1)}\|_2}{D_{\max}} \ge 0,
+\label{eq:param-dist}
+\end{equation}
+and map it to a similarity score where lower deviation yields higher score:
+\begin{equation}
+    s_i^{\text{param}} = 1 - \min\bigl(1,\; \Delta_i^{(t)}\bigr) \in [0,1].
+\label{eq:param}
+\end{equation}
+When $\Delta_i^{(t)} > 1$, the parameters diverge beyond the normalization limit, forcing $s_i^{\text{param}} = 0$.
+
+\paragraph{Layer~4: Cross-Round Stability} Erratic behavior over time is a warning sign. The DT tracks each client's false positive rate over a sliding window of~$\tau$ recent rounds. If the variance exceeds a threshold, a penalty is applied:
+\begin{equation}
+    \delta_i^{\text{stab}} =
+    \begin{cases}
+        \lambda_{\text{stab}}, & \text{if } \mathrm{Var}\!\bigl(\text{FPR}_i^{(t{-}\tau)},\, \dots,\, \text{FPR}_i^{(t)}\bigr) > \tau_{\text{stab}}, \\
+        0, & \text{otherwise},
+    \end{cases}
+\label{eq:stab}
+\end{equation}
+where $\tau_{\text{stab}}$ is the FPR variance threshold.
+
+\paragraph{Trust-Score Fusion} The four layers are combined into a single Trust-Score. We distinguish two regimes based on parameter divergence:
+
+\emph{Moderate divergence} ($\Delta_i^{(t)} \le \theta_{\text{div}}$): Layers~1 and~3 form a weighted base score, while Layers~2 and~4 subtract penalty terms:
+\begin{equation}
+    T_i = \alpha\, s_i^{\text{ids}} + (1{-}\alpha)\, s_i^{\text{param}} - \delta_i^{\text{bd}} - \delta_i^{\text{stab}}, \quad \text{for } \Delta_i^{(t)} \le \theta_{\text{div}}.
+\label{eq:trust-normal}
+\end{equation}
+
+\emph{Severe divergence} ($\Delta_i^{(t)} > \theta_{\text{div}}$): The base score switches to a strict minimum, requiring \emph{both} high IDS performance \emph{and} low parameter deviation:
+\begin{equation}
+    T_i = \min(s_i^{\text{ids}},\, s_i^{\text{param}}) - \delta_i^{\text{bd}} - \delta_i^{\text{stab}}, \quad \text{for } \Delta_i^{(t)} > \theta_{\text{div}}.
+\label{eq:trust-strict}
+\end{equation}
+
+A client is accepted only when $T_i \ge \theta_T$, where $\theta_T$ is the trust threshold.
+
+% ============================================================================
+% ADD TO EXPERIMENTAL SECTION (Parameter Settings):
+% ============================================================================
+%
+% Add this paragraph to Section 4 (Experiments), subsection Implementation Details:
+%
+% \paragraph{Trust-Score Hyperparameters.}
+% We set $\alpha = 0.7$ to prioritize IDS performance over parameter similarity.
+% The penalty coefficients are $\lambda_{\text{bd}} = 0.3$ for backdoor detection and
+% $\lambda_{\text{stab}} = 0.2$ for stability violations. Parameter distance is
+% normalized by $D_{\max} = 5.0$, and strict mode activates when $\Delta_i^{(t)} > \theta_{\text{div}} = 2.0$.
+% The confidence variance threshold is $\tau_{\text{bd}} = 0.15$ and the FPR variance
+% threshold is $\tau_{\text{stab}} = 0.1$, with a sliding window of $\tau = 5$ rounds.
+% Clients with $T_i < \theta_T = 0.4$ are rejected.
+%
+% ============================================================================
+% SUMMARY OF HYPERPARAMETERS:
+% ============================================================================
+%
+% Symbol          | Meaning                          | Default Value | Range
+% ----------------|----------------------------------|---------------|---------------------
+% α              | Performance vs. param balance    | 0.7           | [0, 1]
+% λ_bd           | Backdoor penalty coefficient      | 0.3           | (0, 1]
+% λ_stab         | Stability penalty coefficient     | 0.2           | (0, 1]
+% D_max          | Parameter distance normalization  | 5.0           | (0, ∞)
+% θ_div          | Divergence threshold (strict mode)| 2.0           | (0, ∞)
+% θ_T            | Trust acceptance threshold        | 0.4           | [0, 1]
+% τ_bd           | Confidence variance threshold     | 0.15          | (0, 1)
+% τ_stab         | FPR variance threshold            | 0.1           | (0, ∞)
+% τ              | Stability window size             | 5             | {1, 2, ...}
+%
+% ============================================================================

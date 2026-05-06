@@ -1,0 +1,90 @@
+\documentclass[tikz,border=5mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage{amsmath,amssymb}
+\usepackage[utf8]{vietnam}
+
+\definecolor{cPurple}{RGB}{126,87,194}
+\definecolor{cPurpleFill}{RGB}{237,231,246}
+\definecolor{cTeal}{RGB}{0,151,167}
+\definecolor{cTealFill}{RGB}{220,246,249}
+\definecolor{cGreen}{RGB}{76,175,80}
+\definecolor{cGreenFill}{RGB}{225,245,228}
+\definecolor{cOrange}{RGB}{230,162,60}
+\definecolor{cOrangeFill}{RGB}{255,240,218}
+\definecolor{cDarkRed}{RGB}{183,28,28}
+\definecolor{cDarkGreen}{RGB}{46,125,50}
+
+\tikzset{
+    stepbox/.style={rectangle, rounded corners=4pt, very thick,
+        minimum width=7cm, minimum height=1cm,
+        font=\normalsize, align=center},
+    scorebox/.style={rectangle, rounded corners=5pt, very thick,
+        minimum width=7cm, minimum height=1.1cm,
+        font=\normalsize\bfseries, align=center},
+    gate/.style={diamond, draw=black!70, fill=white, thick,
+        minimum width=1cm, minimum height=1cm,
+        font=\normalsize\bfseries, aspect=2.2, inner sep=2pt},
+    arr/.style={-{Stealth[length=3mm,width=2.5mm]}, thick, #1},
+    arr/.default={black!60},
+    lbl/.style={font=\small, fill=white, inner sep=2pt, rounded corners=1pt},
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.7cm]
+
+% Input: both models + D_ch
+\node[stepbox, draw=cTeal, fill=cTealFill] (input)
+    {Run $\mathbf{w}_i^{(t)}$ and $\mathbf{w}^{(t-1)}$ on $\mathcal{D}_{\text{ch}}$\\[-1pt]
+     {\footnotesize\itshape (Chạy mô hình client \& mô hình toàn cục trên dữ liệu thách thức)}};
+
+% Step 1: Prediction Divergence
+\node[stepbox, draw=cPurple, fill=cPurpleFill, below=0.8cm of input] (div)
+    {\textbf{Prediction Divergence} {\footnotesize\itshape (Độ phân kỳ dự đoán)}\\[2pt]
+     $d_i = \frac{1}{M}\sum_{j=1}^{M} \mathbb{1}[\hat{y}_{i,j} \neq \hat{y}_{g,j}]$};
+
+% Step 2: Effort Gate
+\node[gate, below=1cm of div] (egate) {$d_i \geq \theta_E$?};
+
+% Threshold label
+\node[lbl, font=\footnotesize, left=1.5cm of egate] (thresh)
+    {$\theta_E = \mu_d - \beta \cdot \sigma_d$\\[1pt]{\scriptsize ngưỡng thích ứng}};
+\draw[arr, dashed, cPurple!60] (thresh.east) -- (egate.west);
+
+% Free-rider rejected
+\node[font=\normalsize\bfseries\color{cDarkRed}, right=2cm of egate, align=center] (freerej)
+    {Free-rider\\{\scriptsize (kẻ ăn không)}\\$P_i = 0$};
+\draw[arr=cDarkRed, very thick] (egate.east) -- node[lbl, above] {\small No} (freerej.west);
+
+% Step 3: Performance Score
+\node[scorebox, draw=cGreen, fill=cGreenFill, below=1.2cm of egate] (pscore)
+    {\textbf{Performance-Score} {\footnotesize\itshape (Điểm hiệu năng)}\\[2pt]
+     $P_i = s_i^{\text{ids}} \cdot \dfrac{d_i}{\max_k\, d_k}$};
+\draw[arr=cDarkGreen, very thick] (egate.south) -- node[lbl, right, xshift=2pt] {\small Yes} (pscore.north);
+
+% Step 4: Final Weight
+\node[scorebox, draw=cOrange, fill=cOrangeFill, below=0.9cm of pscore] (weight)
+    {\textbf{Final Aggregation Weight} {\footnotesize\itshape (Trọng số tổng hợp)}\\[2pt]
+     $w_i = \dfrac{T_i \cdot P_i}{\sum_{k \in \mathcal{A}} T_k \cdot P_k}$};
+
+% Trust-Score input
+\node[lbl, font=\footnotesize, left=1.5cm of weight] (tinput)
+    {Trust-Score $T_i$\\{\scriptsize (từ Pipeline 4 lớp)}};
+\draw[arr, dashed, cPurple!60] (tinput.east) -- (weight.west);
+
+% Arrows: flow
+\draw[arr] (input) -- (div);
+\draw[arr] (div) -- (egate);
+\draw[arr] (pscore) -- (weight);
+
+% Background
+\begin{scope}[on background layer]
+    \node[draw=cPurple!50, thick, dashed, rounded corners=8pt, fill=cPurpleFill!10,
+          fit=(input)(div)(egate)(pscore)(weight)(thresh)(freerej),
+          inner xsep=0.5cm, inner ysep=0.4cm,
+          label={[font=\large\bfseries\color{cPurple}]above:DT-PW with Effort Gate (Cơ chế cổng nỗ lực)}] {};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}
+

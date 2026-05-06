@@ -1,0 +1,151 @@
+\documentclass[
+12pt,
+oneside,
+english,
+onehalfspacing,
+nolistspacing,
+headsepline,
+]{MastersDoctoralThesis}
+\usepackage{mathptmx}
+\usepackage{svg}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+\usepackage[utf8]{vietnam}
+\usepackage[utf8]{inputenc}
+\usepackage[T1, T5]{fontenc}
+\usepackage{multirow}
+\usepackage[hyphens]{url}
+\usepackage{mathpazo}
+\usepackage[hidelinks]{hyperref}
+\usepackage[final]{pdfpages}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{indentfirst}
+\usepackage[autostyle=true]{csquotes}
+\usepackage{subfig}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{wrappedverbatim}{Verbatim}{breaklines=true, breaksymbol={} }
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\addto\captionsvietnam{
+  \renewcommand{\listfigurename}{Danh mục các hình vẽ, đồ thị}
+  \renewcommand{\listtablename}{Danh mục các bảng}
+}
+
+\renewcommand{\algorithmicrequire}{\textbf{Đầu vào:}}
+\renewcommand{\algorithmicensure}{\textbf{Đầu ra:}}
+
+\geometry{
+    paper=a4paper,
+    bindingoffset=.5cm,
+    left=3.5cm,
+    right=2.0cm,
+    bmargin=3.0cm,
+    tmargin=3.0cm
+}
+
+
+\thesistitle{Phương pháp xác minh chủ động dựa trên bản sao số với trọng số hiệu năng tăng cường khả năng chống chịu của học liên kết trong phát hiện xâm nhập IoT}
+\supervisor{TS. Phan Thế Duy}
+\examiner{}
+\degree{Master}
+\author{Phạm Hoàng \textsc{Hảo}}
+\addresses{}
+
+\subject{Federated Learning -- Digital Twin -- IoT Intrusion Detection}
+\keywords{Federated Learning; Digital Twin; IoT IDS; Poisoning Attacks; Free-rider}
+\nationuniversity{{}{ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH}}
+\university{\href{https://www.uit.edu.vn/}{TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN}}
+\department{\href{}{Khoa Khoa học máy tính}}
+\group{\href{}{CS-UIT}}
+\faculty{\href{https://cs.uit.edu.vn/}{Khoa KHOA HỌC MÁY TÍNH}}
+
+\AtBeginDocument{
+\hypersetup{pdftitle=\ttitle}
+\hypersetup{pdfauthor=\authorname}
+\hypersetup{pdfkeywords=\keywordnames}
+}
+
+\newcounter{nopage}
+\newenvironment{nopage}
+ {\clearpage\stepcounter{nopage}%
+  \renewcommand{\thepage}{}%
+  \thispagestyle{empty}
+  }
+ {\clearpage\addtocounter{page}{-1}}
+
+\begin{document}
+\includepdf[pages={1}, scale=0.99]{Covers/Front Cover.pdf}
+\includepdf[pages={1}, scale=0.99]{Covers/Title Page Cover.pdf}
+
+\begin{nopage}
+\include{Acknowledgement/pledge}
+\end{nopage}
+
+\begin{nopage}
+\include{Acknowledgement/acknowledgement}
+\end{nopage}
+
+\frontmatter
+\pagestyle{plain}
+\mainmatter
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Mục lục}
+\tableofcontents
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Danh mục các hình vẽ, đồ thị}
+\listoffigures
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Danh mục các bảng}
+\listoftables
+
+\input{Abbreviations}
+
+\include{Abstract/abstract_vn}
+
+\pagestyle{thesis}
+\setstretch{1.5}
+\input{Chapters/Chapter1}
+\input{Chapters/Chapter2}
+\input{Chapters/Chapter3}
+\input{Chapters/Chapter4}
+\input{Chapters/Chapter5}
+\input{Chapters/Chapter6}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+\input{References}
+
+\appendix
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bài báo công bố}
+\markboth{}{}
+\includepdf[pages=-, scale=0.95, pagecommand={\thispagestyle{empty}}]{IEEE_ICCE_paper.pdf}
+
+\end{document}

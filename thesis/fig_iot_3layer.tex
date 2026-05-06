@@ -1,0 +1,265 @@
+\documentclass[tikz,border=5mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,shapes.symbols,shapes.misc,
+                arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage[utf8]{vietnam}
+
+% ── Color palette ──
+\definecolor{percBlue}{RGB}{66,133,244}
+\definecolor{percFill}{RGB}{225,237,255}
+\definecolor{netGreen}{RGB}{76,175,80}
+\definecolor{netFill}{RGB}{225,245,228}
+\definecolor{appOrange}{RGB}{230,162,60}
+\definecolor{appFill}{RGB}{255,243,224}
+\definecolor{useGray}{RGB}{96,125,139}
+\definecolor{useFill}{RGB}{236,239,241}
+
+\tikzset{
+  layerbanner/.style={rectangle, rounded corners=8pt, very thick,
+                      minimum width=15.5cm, minimum height=1.6cm,
+                      font=\Large\bfseries, align=center, inner xsep=12pt},
+  iconrow/.style={rectangle, rounded corners=4pt, draw=#1!50, fill=#1!8,
+                  thick, minimum width=15.5cm, minimum height=2.0cm,
+                  inner sep=6pt},
+  iconbox/.style={rectangle, rounded corners=4pt, draw=#1, fill=white,
+                  thick, minimum width=1.55cm, minimum height=1.55cm,
+                  font=\tiny, align=center, inner sep=2pt},
+  caption/.style={font=\scriptsize, align=center, text=black!75},
+  arr/.style={-{Stealth[length=3mm,width=2.5mm]}, very thick, black!55},
+  smallarr/.style={-{Stealth[length=2.2mm,width=1.7mm]}, semithick, #1},
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.4cm and 0.6cm]
+
+% ====================================================================
+%  LAYER 3 — APPLICATION (banner + separate icon row beneath)
+% ====================================================================
+\node[layerbanner, draw=appOrange, fill=appFill] (appB)
+  {Application Layer\quad
+   {\normalsize\mdseries -- Dịch vụ thông minh, phân tích \& ra quyết định}};
+
+\node[iconrow=appOrange, below=0.25cm of appB] (appR) {};
+
+% Application icons
+\node[iconbox=appOrange, anchor=west, xshift=0.4cm] (ai0) at (appR.west) {};
+% Cloud
+\fill[appOrange!25, draw=appOrange, thick]
+        ($(ai0.center)+(-0.45,-0.10)$) .. controls ($(ai0.center)+(-0.70,-0.10)$) and ($(ai0.center)+(-0.70,0.40)$) ..
+        ($(ai0.center)+(-0.45,0.40)$)
+        .. controls ($(ai0.center)+(-0.45,0.62)$) and ($(ai0.center)+(0.00,0.62)$) ..
+        ($(ai0.center)+(0.05,0.40)$)
+        .. controls ($(ai0.center)+(0.20,0.62)$) and ($(ai0.center)+(0.55,0.62)$) ..
+        ($(ai0.center)+(0.55,0.30)$)
+        .. controls ($(ai0.center)+(0.85,0.30)$) and ($(ai0.center)+(0.85,-0.10)$) ..
+        ($(ai0.center)+(0.55,-0.10)$) -- cycle;
+\node[font=\tiny\bfseries, text=appOrange] at ($(ai0.center)+(0.05,0.18)$) {CLOUD};
+\node[caption, below=0.05cm of ai0] {Cloud};
+
+% Smart Home
+\node[iconbox=appOrange, right=0.30cm of ai0] (ai1) {};
+\draw[appOrange, thick]
+  ($(ai1.center)+(-0.40,-0.30)$) -- ++(0,0.45) -- ++(0.40,0.30) -- ++(0.40,-0.30) -- ++(0,-0.45) -- cycle;
+\fill[appOrange!60] ($(ai1.center)+(-0.10,-0.30)$) rectangle ++(0.20,0.30);
+\node[caption, below=0.05cm of ai1] {Smart Home};
+
+% Healthcare (red cross)
+\node[iconbox=appOrange, right=0.30cm of ai1] (ai2) {};
+\fill[red!70!appOrange] ($(ai2.center)+(-0.08,-0.28)$) rectangle ++(0.16,0.56);
+\fill[red!70!appOrange] ($(ai2.center)+(-0.28,-0.08)$) rectangle ++(0.56,0.16);
+\node[caption, below=0.05cm of ai2] {Healthcare};
+
+% IIoT (factory skyline)
+\node[iconbox=appOrange, right=0.30cm of ai2] (ai3) {};
+\fill[appOrange!50] ($(ai3.center)+(-0.40,-0.30)$) rectangle ++(0.30,0.25);
+\fill[appOrange!50] ($(ai3.center)+( 0.05,-0.30)$) rectangle ++(0.30,0.50);
+\fill[appOrange]    ($(ai3.center)+(-0.10, 0.10)$) circle (0.06);
+\node[caption, below=0.05cm of ai3] {IIoT};
+
+% Smart City
+\node[iconbox=appOrange, right=0.30cm of ai3] (ai4) {};
+\fill[appOrange!50] ($(ai4.center)+(-0.40,-0.30)$) rectangle ++(0.20,0.60);
+\fill[appOrange!50] ($(ai4.center)+( 0.20,-0.30)$) rectangle ++(0.20,0.45);
+\fill[appOrange!70] ($(ai4.center)+(-0.10,-0.30)$) rectangle ++(0.20,0.40);
+\node[caption, below=0.05cm of ai4] {Smart City};
+
+% ====================================================================
+%  LAYER 2 — NETWORK
+% ====================================================================
+\node[layerbanner, draw=netGreen, fill=netFill, below=1.4cm of appR] (netB)
+  {Network Layer\quad
+   {\normalsize\mdseries -- Truyền thông, định tuyến \& dịch vụ gateway}};
+
+\node[iconrow=netGreen, below=0.25cm of netB] (netR) {};
+
+\node[iconbox=netGreen, anchor=west, xshift=0.4cm] (ni1) at (netR.west) {};
+% Router
+\fill[netGreen!60] ($(ni1.center)+(-0.40,-0.20)$) rectangle ++(0.80,0.18);
+\draw[netGreen, thick] ($(ni1.center)+(-0.10,-0.02)$) -- ++(0,0.35);
+\draw[netGreen, thick] ($(ni1.center)+( 0.10,-0.02)$) -- ++(0,0.35);
+\node[caption, below=0.05cm of ni1] {Router};
+
+% Wi-Fi (waves)
+\node[iconbox=netGreen, right=0.30cm of ni1] (ni2) {};
+\fill[netGreen] ($(ni2.center)+(0,-0.15)$) circle (0.05);
+\draw[netGreen, thick] ($(ni2.center)+(0,-0.15)$) ++(-0.18,0.12) arc[start angle=150,end angle=30,radius=0.21];
+\draw[netGreen, thick] ($(ni2.center)+(0,-0.15)$) ++(-0.32,0.20) arc[start angle=150,end angle=30,radius=0.37];
+\node[caption, below=0.05cm of ni2] {Wi-Fi};
+
+% Cellular tower
+\node[iconbox=netGreen, right=0.30cm of ni2] (ni3) {};
+\draw[netGreen, thick] ($(ni3.center)+(-0.10,-0.30)$) -- ($(ni3.center)+(0,0.30)$) -- ($(ni3.center)+(0.10,-0.30)$) -- cycle;
+\draw[netGreen, thick] ($(ni3.center)+(-0.30,0.30)$) arc[start angle=200,end angle=-20,radius=0.30];
+\node[caption, below=0.05cm of ni3] {5G/LTE};
+
+% LoRa/Zigbee
+\node[iconbox=netGreen, right=0.30cm of ni3] (ni4) {};
+\fill[netGreen!70] ($(ni4.center)+(-0.32,-0.18)$) rectangle ++(0.64,0.36);
+\node[font=\scriptsize\bfseries, text=white] at (ni4.center) {LoRa};
+\node[caption, below=0.05cm of ni4] {LoRa/Zigbee};
+
+% Protocols
+\node[iconbox=netGreen, right=0.30cm of ni4] (ni5) {};
+\node[font=\tiny\bfseries, text=netGreen, align=center] at (ni5.center) {MQTT\\CoAP\\HTTP};
+\node[caption, below=0.05cm of ni5] {Protocols};
+
+% Gateway
+\node[iconbox=netGreen, right=0.30cm of ni5] (ni6) {};
+\draw[netGreen, very thick] ($(ni6.center)+(-0.30,-0.20)$) rectangle ++(0.60,0.40);
+\node[font=\tiny\bfseries, text=netGreen] at (ni6.center) {GW};
+\node[caption, below=0.05cm of ni6] {Gateway};
+
+% ====================================================================
+%  LAYER 1 — PERCEPTION
+% ====================================================================
+\node[layerbanner, draw=percBlue, fill=percFill, below=1.4cm of netR] (perB)
+  {Perception Layer\quad
+   {\normalsize\mdseries -- Cảm biến vật lý \& thiết bị chấp hành}};
+
+\node[iconrow=percBlue, below=0.25cm of perB] (perR) {};
+
+\node[iconbox=percBlue, anchor=west, xshift=0.4cm] (pi1) at (perR.west) {};
+% Sensor
+\fill[percBlue!50] (pi1.center) circle (0.22);
+\fill[percBlue]    (pi1.center) circle (0.09);
+\draw[percBlue, thick] (pi1.center) ++(0.20,0) arc[start angle=0,end angle=90,radius=0.32];
+\node[caption, below=0.05cm of pi1] {Sensor};
+
+% Camera
+\node[iconbox=percBlue, right=0.30cm of pi1] (pi2) {};
+\fill[percBlue!60] ($(pi2.center)+(-0.38,-0.20)$) rectangle ++(0.76,0.40);
+\fill[white]       (pi2.center) circle (0.14);
+\fill[percBlue]    (pi2.center) circle (0.07);
+\node[caption, below=0.05cm of pi2] {Camera};
+
+% RFID
+\node[iconbox=percBlue, right=0.30cm of pi2] (pi3) {};
+\draw[percBlue, very thick] ($(pi3.center)+(-0.32,-0.16)$) rectangle ++(0.64,0.32);
+\node[font=\tiny\bfseries, text=percBlue] at (pi3.center) {RFID};
+\node[caption, below=0.05cm of pi3] {RFID Tag};
+
+% Wearable
+\node[iconbox=percBlue, right=0.30cm of pi3] (pi4) {};
+\draw[percBlue, very thick] ($(pi4.center)+(-0.22,-0.20)$) rectangle ++(0.44,0.40);
+\draw[percBlue, thick] ($(pi4.center)+(-0.22,-0.32)$) -- ++(0.44,0);
+\draw[percBlue, thick] ($(pi4.center)+(-0.22, 0.20)$) -- ++(0.44,0);
+\node[caption, below=0.05cm of pi4] {Wearable};
+
+% Smart Car
+\node[iconbox=percBlue, right=0.30cm of pi4] (pi5) {};
+\fill[percBlue!60] ($(pi5.center)+(-0.38,-0.10)$) -- ++(0.10,0.22) -- ++(0.56,0) -- ++(0.10,-0.22) -- cycle;
+\fill[percBlue!40] ($(pi5.center)+(-0.38,-0.20)$) rectangle ++(0.76,0.10);
+\fill[percBlue]    ($(pi5.center)+(-0.22,-0.25)$) circle (0.06);
+\fill[percBlue]    ($(pi5.center)+( 0.22,-0.25)$) circle (0.06);
+\node[caption, below=0.05cm of pi5] {Smart Car};
+
+% Actuator
+\node[iconbox=percBlue, right=0.30cm of pi5] (pi6) {};
+\fill[percBlue!50] ($(pi6.center)+(-0.32,-0.18)$) rectangle ++(0.30,0.36);
+\draw[percBlue, very thick] ($(pi6.center)+(-0.02,-0.05)$) -- ++(0.36,0.05);
+\fill[percBlue]    ($(pi6.center)+(0.36,0)$) circle (0.07);
+\node[caption, below=0.05cm of pi6] {Actuator};
+
+% ====================================================================
+%  ARROWS BETWEEN LAYERS
+%  Up-arrows on the LEFT (data flow), down-arrows on the RIGHT (control)
+% ====================================================================
+% L1 row -> L2 banner (dữ liệu thô đi lên)
+\draw[arr] ($(perB.north)+(-3.5,0)$) -- ($(netR.south)+(-3.5,0)$);
+\node[font=\small\bfseries, fill=white, inner sep=2pt, rounded corners=2pt]
+      at ($(netR.south)!0.5!(perB.north) + (-3.5,0)$)
+      {Dữ liệu thô $\uparrow$};
+
+% L2 row -> L3 banner (dữ liệu đã xử lý đi lên)
+\draw[arr] ($(netB.north)+(-3.5,0)$) -- ($(appR.south)+(-3.5,0)$);
+\node[font=\small\bfseries, fill=white, inner sep=2pt, rounded corners=2pt]
+      at ($(appR.south)!0.5!(netB.north) + (-3.5,0)$)
+      {Dữ liệu đã xử lý $\uparrow$};
+
+% L3 row -> L2 banner (điều khiển đi xuống)
+\draw[arr, dashed, black!45] ($(appR.south)+(3.5,0)$) -- ($(netB.north)+(3.5,0)$);
+\node[font=\small\itshape, fill=white, inner sep=2pt, text=black!55]
+      at ($(appR.south)!0.5!(netB.north) + (3.5,0)$)
+      {Điều khiển $\downarrow$};
+
+% L2 row -> L1 banner (lệnh đi xuống)
+\draw[arr, dashed, black!45] ($(netR.south)+(3.5,0)$) -- ($(perB.north)+(3.5,0)$);
+\node[font=\small\itshape, fill=white, inner sep=2pt, text=black!55]
+      at ($(netR.south)!0.5!(perB.north) + (3.5,0)$)
+      {Lệnh $\downarrow$};
+
+% ====================================================================
+%  LEFT-SIDE LABELS — Layer numbering badges
+% ====================================================================
+\node[circle, draw=appOrange, very thick, fill=white,
+      minimum size=0.95cm, font=\bfseries, text=appOrange]
+      at ($(appB.west)+(-0.7,0)$) {L3};
+\node[circle, draw=netGreen, very thick, fill=white,
+      minimum size=0.95cm, font=\bfseries, text=netGreen]
+      at ($(netB.west)+(-0.7,0)$) {L2};
+\node[circle, draw=percBlue, very thick, fill=white,
+      minimum size=0.95cm, font=\bfseries, text=percBlue]
+      at ($(perB.west)+(-0.7,0)$) {L1};
+
+% ====================================================================
+%  RIGHT-SIDE PANEL — End users / requirements
+% ====================================================================
+\node[draw=useGray, very thick, rounded corners=6pt, fill=useFill,
+      anchor=north west, font=\small,
+      align=center, inner xsep=8pt, inner ysep=10pt,
+      minimum width=3.4cm,
+      label={[font=\bfseries\small\color{useGray}]above:End Users (Người dùng)}]
+      (users) at ($(appB.east)+(1.2, 0)$)
+      {\textbf{Stakeholders}\\[-1pt]{\scriptsize (Bên liên quan)}\\[3pt]
+       \scriptsize $\bullet$ Người dân\\
+       \scriptsize $\bullet$ Bệnh viện\\
+       \scriptsize $\bullet$ Nhà máy\\
+       \scriptsize $\bullet$ Cơ quan quản lý\\[10pt]
+       \textbf{Requirements}\\[-1pt]{\scriptsize (Yêu cầu)}\\[2pt]
+       \scriptsize $\bullet$ Privacy / Riêng tư\\
+       \scriptsize $\bullet$ Low latency / Độ trễ thấp\\
+       \scriptsize $\bullet$ Reliability / Tin cậy\\
+       \scriptsize $\bullet$ Security / Bảo mật};
+
+% Connect panel to all 3 layer banners (only banner -> users, no overlap)
+\draw[smallarr=useGray]         (appB.east) -- (users.west |- appB.east);
+\draw[smallarr=useGray, dashed] (netB.east) -- (users.west |- netB.east);
+\draw[smallarr=useGray, dashed] (perB.east) -- (users.west |- perB.east);
+
+% ====================================================================
+%  CROSS-CUTTING — Security & Management background band
+% ====================================================================
+\begin{scope}[on background layer]
+  \node[draw=black!40, very thick, dashed, rounded corners=6pt,
+        fill=black!4,
+        fit=(appB)(appR)(netB)(netR)(perB)(perR),
+        inner xsep=1.4cm, inner ysep=0.5cm] (allbox) {};
+\end{scope}
+
+\node[rotate=90, font=\footnotesize\bfseries, text=black!60,
+      anchor=south] at ($(allbox.west)+(0.25,0)$)
+      {Security \& Management — Bảo mật \& quản trị (xuyên tầng)};
+
+\end{tikzpicture}
+\end{document}
+

@@ -1,0 +1,110 @@
+\documentclass[tikz,border=5mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage{amsmath,amssymb}
+\usepackage[utf8]{vietnam}
+
+\definecolor{cRed}{RGB}{211,84,85}
+\definecolor{cRedFill}{RGB}{255,232,234}
+\definecolor{cGreen}{RGB}{76,175,80}
+\definecolor{cGreenFill}{RGB}{225,245,228}
+\definecolor{cBlue}{RGB}{66,133,244}
+\definecolor{cBlueFill}{RGB}{215,232,255}
+\definecolor{cOrange}{RGB}{230,162,60}
+\definecolor{cOrangeFill}{RGB}{255,240,218}
+\definecolor{cPurple}{RGB}{126,87,194}
+\definecolor{cPurpleFill}{RGB}{237,231,246}
+\definecolor{cTeal}{RGB}{0,151,167}
+\definecolor{cTealFill}{RGB}{220,246,249}
+\definecolor{cDarkRed}{RGB}{183,28,28}
+\definecolor{cDarkGreen}{RGB}{46,125,50}
+
+\tikzset{
+    layerbox/.style={rectangle, rounded corners=4pt, very thick,
+        minimum width=6cm, minimum height=1cm,
+        font=\normalsize, align=center},
+    scorebox/.style={rectangle, rounded corners=4pt, very thick,
+        minimum width=6cm, minimum height=0.9cm,
+        font=\normalsize\bfseries, align=center},
+    fusionbox/.style={rectangle, rounded corners=5pt, very thick,
+        minimum width=8cm, minimum height=1.2cm,
+        font=\normalsize\bfseries, align=center},
+    gate/.style={diamond, draw=black!70, fill=white, thick,
+        minimum width=1cm, minimum height=1cm,
+        font=\normalsize\bfseries, aspect=2.2, inner sep=2pt},
+    arr/.style={-{Stealth[length=3mm,width=2.5mm]}, thick, #1},
+    arr/.default={black!60},
+    lbl/.style={font=\small, fill=white, inner sep=2pt, rounded corners=1pt},
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.7cm]
+
+% Input
+\node[layerbox, draw=cTeal, fill=cTealFill] (input)
+    {Challenge Data $\mathcal{D}_{\text{ch}}$ + Client Model $\mathbf{w}_i^{(t)}$\\[-1pt]
+     {\footnotesize\itshape (Dữ liệu thách thức + Mô hình client)}};
+
+% Layer 1
+\node[layerbox, draw=cBlue, fill=cBlueFill, below=0.8cm of input] (L1)
+    {\textbf{L1: IDS Performance} {\footnotesize\itshape (Hiệu năng IDS)} \\
+     $s_i^{\text{ids}} = \text{F1}(\mathbf{w}_i^{(t)},\, \mathcal{D}_{\text{ch}})$};
+
+% Layer 2
+\node[layerbox, draw=cOrange, fill=cOrangeFill, below=0.6cm of L1] (L2)
+    {\textbf{L2: Backdoor Resistance} {\footnotesize\itshape (Kháng backdoor)} \\
+     $\delta_i^{\text{bd}}$ via $\sigma(\text{conf})$};
+
+% Layer 3
+\node[layerbox, draw=cGreen, fill=cGreenFill, below=0.6cm of L2] (L3)
+    {\textbf{L3: Parameter Deviation} {\footnotesize\itshape (Mức lệch tham số)} \\
+     $s_i^{\text{param}} = 1 - \min(1,\, \Delta_i^{(t)})$};
+
+% Layer 4
+\node[layerbox, draw=cPurple, fill=cPurpleFill, below=0.6cm of L3] (L4)
+    {\textbf{L4: Cross-Round Stability} {\footnotesize\itshape (Ổn định qua các vòng)} \\
+     $\delta_i^{\text{stab}}$ via $\text{Var}(\text{FPR})$};
+
+% Fusion
+\node[fusionbox, draw=cRed, fill=cRedFill, below=1cm of L4] (fusion)
+    {Trust-Score Fusion {\footnotesize\itshape (Tổng hợp điểm tin cậy)}\\[3pt]
+     {\normalsize $T_i = f(s_i^{\text{ids}},\, s_i^{\text{param}};\; \Delta_i) - \delta_i^{\text{bd}} - \delta_i^{\text{stab}}$}};
+
+% Mode labels
+\node[lbl, font=\footnotesize, below left=0.1cm and -1cm of fusion.south] (balanced)
+    {Balanced: $\alpha\, s^{\text{ids}} + (1{-}\alpha)\, s^{\text{param}}$};
+\node[lbl, font=\footnotesize, below right=0.1cm and -1cm of fusion.south] (strict)
+    {Strict: $\min(s^{\text{ids}},\, s^{\text{param}})$};
+
+% Gate
+\node[gate, below=1.5cm of fusion] (gate) {$T_i \geq \theta_T$?};
+
+% Accept / Reject
+\node[font=\normalsize\bfseries\color{cDarkGreen}, below=1cm of gate, align=center] (accept)
+    {Accept $\rightarrow$ DT-PW Scoring\\{\scriptsize (Chấp nhận, chuyển sang chấm điểm)}};
+\node[font=\normalsize\bfseries\color{cDarkRed}, right=2cm of gate, align=center] (reject)
+    {Reject\\{\scriptsize (Loại bỏ)}};
+
+% Arrows: flow
+\draw[arr] (input) -- (L1);
+\draw[arr] (L1) -- (L2);
+\draw[arr] (L2) -- (L3);
+\draw[arr] (L3) -- (L4);
+\draw[arr] (L4) -- (fusion);
+\draw[arr] (fusion) -- (gate);
+
+% Gate outputs
+\draw[arr=cDarkGreen, very thick] (gate.south) -- node[lbl, right, xshift=2pt] {\small pass} (accept.north);
+\draw[arr=cDarkRed, very thick] (gate.east) -- node[lbl, above] {\small fail} (reject.west);
+
+% Background
+\begin{scope}[on background layer]
+    \node[draw=cRed!50, thick, dashed, rounded corners=8pt, fill=cRedFill!10,
+          fit=(input)(L1)(L2)(L3)(L4)(fusion),
+          inner xsep=0.5cm, inner ysep=0.4cm,
+          label={[font=\large\bfseries\color{cRed}]above:Four-Layer Behavioral Verification Pipeline (Pipeline kiểm định hành vi 4 lớp)}] {};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}
+

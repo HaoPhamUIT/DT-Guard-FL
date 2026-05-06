@@ -1,0 +1,57 @@
+% Chapter 6
+\chapter{KẾT LUẬN VÀ KHUYẾN NGHỊ}
+\label{Chapter6}
+
+Chương này tổng kết kết quả, đóng góp khoa học, các hạn chế, và đề xuất hướng phát triển tiếp theo.
+
+\section{Tổng kết kết quả và đóng góp khoa học}
+Đề tài đã xây dựng thành công khung DT-Guard, hệ thống phòng thủ chủ động cho FL trong ngữ cảnh IoT IDS, sử dụng Digital Twin làm môi trường kiểm chứng hành vi. Kết quả thực nghiệm trên CIC-IoT-2023 (34 lớp, 39 đặc trưng, MLP) và ToN-IoT (10 lớp, 10 đặc trưng, MLP) cho thấy:
+
+\begin{itemize}
+\item
+  Accuracy ổn định: 72,3\%--73,3\% trên CIC-IoT-2023, 99,8\% trên ToN-IoT qua mọi mức malicious (10\%--50\%).
+\item
+  Detection Rate cao: 89,5\%--98,3\% trên CIC-IoT-2023, 90\%--100\% trên ToN-IoT.
+\item
+  FPR = 0\%: DT-Guard duy trì FPR 0\% ở cả hai bộ dữ liệu, trong khi LUP có FPR trung bình 26,7\%.
+\item
+  Phát hiện free-rider: DT-PW gán trọng số 0 cho 100\% free-rider, trong khi Trust-Score (LUP) thưởng cho free-rider (0,2448 vs 0,0013).
+\item
+  Overhead thấp: 80,8 ms/round (\textless{} 1\%), peak memory 485 MB (thấp nhất).
+\end{itemize}
+
+Năm đóng góp khoa học: (1) Paradigm "active behavioral verification" thay thế passive parameter inspection; (2) Chứng minh tính tổng quát hóa liên dataset, baseline sụp đổ trước cùng tấn công ở cả hai dataset; (3) Giải pháp đồng thời ba vấn đề: phòng thủ đa dạng tấn công, FPR = 0\%, phát hiện free-rider; (4) Framework triển khai được với overhead thấp; (5) Hướng dẫn chọn TabDDPM làm bộ sinh qua A/B Testing, TabDDPM đạt TSTR cao nhất (71,4\%) và Wasserstein Distance thấp nhất (0,061).
+
+\section{Các hạn chế của hệ thống}
+Mặc dù kết quả thực nghiệm khả quan, DT-Guard vẫn còn một số hạn chế cần được thừa nhận:
+
+\begin{itemize}
+\item
+  \textbf{(1)} Overhead tăng tuyến tính theo số client. Chi phí verification mỗi round là O(M $\times$ N), phù hợp với N = 20 client hiện tại (overhead \textless{} 1\%) nhưng sẽ tăng đáng kể khi mở rộng ra hệ thống quy mô lớn (N = 1000+). Cần kết hợp parallel verification và sampling để giảm tải.
+\item
+  \textbf{(2)} Chưa đánh giá trên mạng IoT thực tế. Toàn bộ thực nghiệm chạy trên môi trường mô phỏng tuần tự {[}1, 2, 5, 15, 16, 18, 19{]}, không bao gồm độ trễ mạng, mất gói tin, client dropout, và sự không đồng nhất về tài nguyên, các yếu tố phổ biến trong triển khai thực.
+\item
+  \textbf{(3)} Chưa thử nghiệm tấn công adaptive và FL bất đồng bộ. Đề tài chưa đánh giá adaptive attacks, tấn công được thiết kế để vượt qua DT-Guard, và chưa thử nghiệm trong mô hình FL bất đồng bộ (asynchronous FL) {[}22{]}, nơi mô hình toàn cục liên tục thay đổi.
+\end{itemize}
+
+\section{Hướng phát triển tiếp theo}
+Dựa trên các hạn chế trên, đề tài đề xuất các hướng phát triển:
+
+\textbf{(1)} Tích hợp Blockchain cho audit log bất biến {[}21{]}. Ghi nhận Trust-Score và quyết định verification lên chain để đảm bảo tính minh bạch và kiểm toán.
+
+\textbf{(2)} Triển khai trên testbed IoT thực tế. Đánh giá trên môi trường vật lý gồm nhiều thiết bị IoT khác nhau để kiểm chứng tính khả thi khi có độ trễ mạng và tài nguyên hạn chế.
+
+\textbf{(3)} Quy mô lớn: parallel và hierarchical verification. Chạy nhiều DT instance song song, kết hợp sampling chỉ kiểm chứng ngẫu nhiên một tỉ lệ client mỗi round. Mở rộng sang kiến trúc phân cấp (edge $\rightarrow$ fog $\rightarrow$ cloud).
+
+\textbf{(4)} Mở rộng sang FL bất đồng bộ. Điều chỉnh Trust Gate so sánh với snapshot mô hình toàn cục tại thời điểm nhận update, và điều chỉnh Effort Gate cho ngưỡng divergence phù hợp.
+
+\section{Kết luận luận văn}
+Luận văn đã đề xuất và đánh giá hệ thống DT-Guard, phương pháp phòng thủ chủ động cho Federated Learning trong ngữ cảnh phát hiện xâm nhập IoT, sử dụng Digital Twin làm môi trường kiểm chứng hành vi.
+
+\textbf{Về mặt khoa học}, đóng góp quan trọng nhất là chuyển dịch phòng thủ FL từ phân tích tham số thụ động sang kiểm chứng hành vi chủ động. Ba khoảng trống nghiên cứu đã được giải quyết: phòng thủ hiệu quả trước năm loại tấn công, phân biệt chính xác Non-IID và đầu độc, phát hiện và loại bỏ free-rider.
+
+\textbf{Về mặt thực nghiệm}, kết quả trên CIC-IoT-2023 và ToN-IoT xác nhận tính hiệu quả và tổng quát hóa của DT-Guard: accuracy ổn định bất chấp tỉ lệ độc hại tăng, DR đạt 98,3\% và 99,5--100\% ở 50\% malicious, FPR = 0\% trên toàn bộ 40 kịch bản, phát hiện 100\% free-rider, overhead dưới 1\%.
+
+\textbf{Về mặt ý nghĩa}, nguyên lý kiểm chứng hành vi chủ động là hướng triển vọng cho hệ thống FL an toàn trong IoT IDS. Lỗ hổng của phương pháp thụ động mang tính cấu trúc: cùng một baseline thất bại trước cùng loại tấn công ở cả hai môi trường, chứng tỏ vấn đề nằm ở bản chất cách tiếp cận.
+
+\textbf{Về công bố khoa học}, kết quả cốt lõi của luận văn đã được đệ trình tại hội nghị quốc tế IEEE ICCE 2026 (Eleventh International Conference on Communications and Electronics), với tiêu đề "Active Digital Twin Verification for Robust Federated Learning in IoT Intrusion Detection" {[}23{]} (hiện đang trong quá trình chờ duyệt).

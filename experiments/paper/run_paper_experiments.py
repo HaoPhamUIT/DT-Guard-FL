@@ -34,6 +34,7 @@ Usage:
 """
 
 import argparse
+import copy
 import torch
 import numpy as np
 import time
@@ -331,7 +332,12 @@ DEFENSES_A = ["DT-Guard", "LUP", "ClipCluster", "SignGuard", "GeoMed",
 
 
 def merge_expA():
-    """Merge paper_expA_{10,20,40,50}.json into paper_expA.json."""
+    """Merge paper_expA_{10,20,40,50}.json into paper_expA.json.
+
+    Uses copy.deepcopy when assigning per-ratio dicts so the four entries
+    never share references (a past bug produced 4 identical ratios).
+    Also sanity-checks that ratios are not byte-identical after merge.
+    """
     print("\n  Merging EXP-A partial results...")
     merged = {'ratios': {}, 'config': {
         'mal_ratios': {k: v for k, v in ALL_MAL_RATIOS.items()},
@@ -350,15 +356,28 @@ def merge_expA():
             partial = json.load(f)
         # partial has {"ratio_label": "X%", "results": {...}, "timings": {...}}
         label = partial['ratio_label']
+        # Deep-copy to guarantee independent dicts for each ratio.
         merged['ratios'][label] = {
-            'results': partial['results'],
-            'timings': partial['timings']}
-        print(f"    ✓ Loaded {fpath} ({label})")
+            'results':     copy.deepcopy(partial['results']),
+            'timings':     copy.deepcopy(partial['timings']),
+            'n_malicious': partial.get('n_malicious')}
+        print(f"    ✓ Loaded {fpath} ({label}, n_mal={partial.get('n_malicious')})")
 
     if missing:
         print(f"    ⚠ Missing files: {', '.join(missing)}")
         print(f"    Run those ratios first, then merge again.")
         return
+
+    # ── Sanity check: ratios must be distinct (avoid the past dup-ref bug) ──
+    labels = list(merged['ratios'].keys())
+    for i, a in enumerate(labels):
+        for b in labels[i + 1:]:
+            if merged['ratios'][a] is merged['ratios'][b]:
+                raise RuntimeError(
+                    f"Internal bug: ratios {a} and {b} share the same object")
+            if merged['ratios'][a]['results'] == merged['ratios'][b]['results']:
+                print(f"    ⚠ WARNING: results for {a} and {b} are byte-identical."
+                      f"  Re-run those ratios.")
 
     out = RESULTS_DIR / 'paper_expA.json'
     with open(out, 'w') as f:
@@ -504,30 +523,11 @@ def experiment_A(device, ratio_pct=None):
     total_time = time.time() - t0_all
     print(f"\n  Done in {total_time:.0f}s ({total_time/60:.1f} min)", flush=True)
 
-    # If running all ratios, also save the merged file
+    # If running all ratios, also save the merged file by re-reading the
+    # per-ratio JSONs we just wrote.  This funnels every write path through
+    # `merge_expA()` so that future bug fixes only need to be applied once.
     if ratio_pct is None:
-        save = {'ratios': {}, 'config': {
-            'mal_ratios': {k: v for k, v in ALL_MAL_RATIOS.items()},
-            'alpha': DIRICHLET_ALPHA, 'rounds': NUM_ROUNDS,
-            'num_clients': NUM_CLIENTS,
-            'attacks': list(ATTACKS_A.keys()),
-            'defenses': DEFENSES_A}}
-        for ratio_label in run_ratios:
-            save['ratios'][ratio_label] = {'results': {}, 'timings': {}}
-            for d in DEFENSES_A:
-                save['ratios'][ratio_label]['results'][d] = {}
-                save['ratios'][ratio_label]['timings'][d] = {}
-                for a in ATTACKS_A:
-                    r = all_results[ratio_label][d][a]
-                    save['ratios'][ratio_label]['results'][d][a] = {
-                        'accuracy': round(r['accuracy'], 4),
-                        'detection_rate': round(r['detection_rate'], 4),
-                        'fpr': round(r['fpr'], 4)}
-                    save['ratios'][ratio_label]['timings'][d][a] = round(
-                        all_timings[ratio_label][d][a], 1)
-        with open(RESULTS_DIR / 'paper_expA.json', 'w') as f:
-            json.dump(save, f, indent=2)
-        print(f"  ✓ Saved → {RESULTS_DIR / 'paper_expA.json'}")
+        merge_expA()
 
     return all_results
 

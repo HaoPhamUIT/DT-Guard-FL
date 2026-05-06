@@ -1,0 +1,179 @@
+\documentclass[tikz,border=5mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,shapes.misc,arrows.meta,positioning,
+                fit,backgrounds,calc,decorations.pathreplacing,decorations.markings}
+\usepackage[utf8]{vietnam}
+
+% ── Bảng màu (mỗi giai đoạn một màu) ──
+\definecolor{cBlue}{RGB}{66,133,244}
+\definecolor{cBlueFill}{RGB}{225,237,255}
+\definecolor{cTeal}{RGB}{0,151,167}
+\definecolor{cTealFill}{RGB}{220,246,249}
+
+\definecolor{p1}{RGB}{76,175,80}     % Khởi tạo  — xanh lá
+\definecolor{p1F}{RGB}{225,245,228}
+\definecolor{p2}{RGB}{230,162,60}    % Kết nối   — cam
+\definecolor{p2F}{RGB}{255,243,224}
+\definecolor{p3}{RGB}{126,87,194}    % Mô phỏng  — tím
+\definecolor{p3F}{RGB}{237,231,246}
+\definecolor{p4}{RGB}{211,84,85}     % Phân tích — đỏ
+\definecolor{p4F}{RGB}{255,232,234}
+\definecolor{p5}{RGB}{0,151,167}     % Tối ưu    — xanh ngọc
+\definecolor{p5F}{RGB}{220,246,249}
+
+\tikzset{
+    % Trong circle CHỈ chứa số (không có chữ) ⇒ không bao giờ tràn.
+    phasenode/.style={circle, draw=#1, fill=white, very thick,
+                      minimum size=1.4cm, inner sep=1pt,
+                      font=\Large\bfseries, align=center},
+    % Hộp mô tả bên ngoài circle: chứa cả tên giai đoạn lẫn diễn giải.
+    phaselabel/.style={rectangle, rounded corners=4pt, draw=#1,
+                       fill=white, thick,
+                       minimum width=3.6cm, minimum height=1.2cm,
+                       font=\footnotesize, align=center, inner sep=4pt},
+    centerbox/.style={rectangle, rounded corners=5pt, very thick,
+                      minimum width=3.0cm, minimum height=1.10cm,
+                      font=\small\bfseries, align=center,
+                      inner sep=4pt},
+    cycarr/.style={-{Stealth[length=3.5mm,width=2.6mm]}, very thick, #1},
+    bidir/.style={{Stealth[length=2.8mm,width=2.2mm]}-{Stealth[length=2.8mm,width=2.2mm]},
+                  very thick, #1},
+}
+
+\begin{document}
+\begin{tikzpicture}
+
+% ====================================================================
+%  TRUNG TÂM — Thực thể vật lý  <-->  Mô hình số
+%  Tách hai hộp ra xa và đặt nhãn nối ở khoảng giữa thật rộng
+% ====================================================================
+\node[centerbox, draw=cBlue, fill=cBlueFill] (pe) at (-3.8, 0)
+    {Physical Entity (PE)\\[-1pt]{\scriptsize\mdseries Mạng / thiết bị IoT}};
+
+\node[centerbox, draw=cTeal, fill=cTealFill] (dm) at ( 3.8, 0)
+    {Digital Model (DM)\\[-1pt]{\scriptsize\mdseries Bản sao ảo}};
+
+% Mũi tên hai chiều "Data Connection" giữa hai hộp
+\draw[bidir=black!60] (pe.east) -- (dm.west);
+
+% Nhãn "Data Connection" – đặt phía trên đoạn nối, có viền nhẹ để nổi bật
+\node[font=\scriptsize\bfseries, fill=white,
+      draw=black!30, semithick, rounded corners=2pt, inner sep=3pt]
+      at (0, 0.45) {Data Connection (DC)};
+% Phụ đề bên dưới đoạn nối
+\node[font=\scriptsize\itshape, text=black!60, fill=white, inner sep=2pt]
+      at (0, -0.30) {Telemetry $\,\leftrightarrows\,$ Control commands};
+
+% ====================================================================
+%  VÒNG NGOÀI — 5 giai đoạn xếp trên ngũ giác (thuận chiều kim đồng hồ)
+% ====================================================================
+\def\R{6.2}      % bán kính vòng giai đoạn (tăng để có chỗ cho hộp giữa)
+
+% --- Giai đoạn 1: Create ---
+\path (90:\R)   coordinate (cP1);
+\node[phasenode=p1, fill=p1F] at (cP1) {1};
+\node[phaselabel=p1, above=0.55cm of cP1]
+      {\textbf{\color{p1}Create}\\Khởi tạo Digital Model\\từ đặc tả Physical Entity};
+
+% --- Giai đoạn 2: Connect ---
+\path (18:\R)   coordinate (cP2);
+\node[phasenode=p2, fill=p2F] at (cP2) {2};
+\node[phaselabel=p2, right=0.55cm of cP2]
+      {\textbf{\color{p2}Connect}\\Thiết lập Data Connection\\trao đổi dữ liệu hai chiều};
+
+% --- Giai đoạn 3: Simulate ---
+\path (-54:\R)  coordinate (cP3);
+\node[phasenode=p3, fill=p3F] at (cP3) {3};
+\node[phaselabel=p3, below right=0.30cm and 0.55cm of cP3]
+      {\textbf{\color{p3}Simulate}\\Mô phỏng hành vi của PE\\trong sandbox an toàn};
+
+% --- Giai đoạn 4: Analyze ---
+\path (-126:\R) coordinate (cP4);
+\node[phasenode=p4, fill=p4F] at (cP4) {4};
+\node[phaselabel=p4, below left=0.30cm and 0.55cm of cP4]
+      {\textbf{\color{p4}Analyze}\\Phát hiện bất thường\\và đánh giá hành vi};
+
+% --- Giai đoạn 5: Optimize \& Actuate ---
+\path (162:\R)  coordinate (cP5);
+\node[phasenode=p5, fill=p5F] at (cP5) {5};
+\node[phaselabel=p5, left=0.55cm of cP5]
+      {\textbf{\color{p5}Optimize \& Actuate}\\Phản hồi tri thức để\\điều khiển PE};
+
+% ====================================================================
+%  MŨI TÊN VÒNG (thuận chiều kim đồng hồ)
+% ====================================================================
+\def\gap{14}     % khoảng cách (độ) tránh node
+\foreach \fromAng/\toAng/\colr in {%
+    90/18/p1,
+    18/-54/p2,
+    -54/-126/p3,
+    -126/-234/p4,
+    -234/-270/p5}
+{
+    \draw[cycarr=\colr]
+      (\fromAng-\gap:\R) arc (\fromAng-\gap:\toAng+\gap:\R);
+}
+
+% ====================================================================
+%  ĐƯỜNG CHẤM — Trung tâm  <->  Vòng đời
+% ====================================================================
+\draw[->, thick, cBlue!70, dashed] (pe.north) to[bend left=15] (cP1);
+\draw[->, thick, p5!80, dashed]    (cP5) to[bend left=15] (pe.west);
+\draw[->, thick, p3!80, dashed]    (cP3) to[bend left=15] (dm.south east);
+\draw[->, thick, p2!80, dashed]    (cP2) to[bend left=15] (dm.north east);
+
+% ====================================================================
+%  TIÊU ĐỀ + PHỤ ĐỀ
+% ====================================================================
+\node[font=\Large\bfseries, text=black!75]
+      at (0, \R + 2.6) {Vòng đời Bản sao số (Digital Twin Lifecycle)};
+\node[font=\footnotesize\itshape, text=black!55]
+      at (0, \R + 2.0)
+      {Vòng lặp liên tục: Create $\to$ Connect $\to$ Simulate $\to$ Analyze $\to$ Optimize \& Actuate};
+
+% ====================================================================
+%  CHÚ THÍCH (đáy) — dùng MŨI TÊN minh họa thay vì text "mũi tên liền"
+% ====================================================================
+\begin{scope}[shift={(0, -\R - 2.0)}]
+    % Khung chú thích — đủ rộng để chứa cả 3 mục + nhãn cuối
+    \node[draw=black!40, rounded corners=4pt, fill=black!4,
+          minimum width=18cm, minimum height=1.2cm,
+          inner xsep=10pt, inner ysep=8pt] (legbox) {};
+
+    \node[font=\small\bfseries, anchor=west]
+          at ($(legbox.west)+(0.3,0)$) (lblTitle) {Chú thích:};
+
+    % --- Mục 1: mũi tên liền = chuyển giai đoạn ---
+    \draw[cycarr=p1!80] ($(lblTitle.east)+(0.4,0)$) -- ++(0.8,0) coordinate (a1end);
+    \node[font=\scriptsize, anchor=west, text=black!75] at ($(a1end)+(0.10,0)$)
+          (txt1) {chuyển giai đoạn};
+
+    % --- Mục 2: mũi tên đứt = liên kết thực thể ↔ giai đoạn ---
+    \draw[->, thick, dashed, cBlue!80]
+          ($(txt1.east)+(0.5,0)$) -- ++(0.8,0) coordinate (a2end);
+    \node[font=\scriptsize, anchor=west, text=black!75] at ($(a2end)+(0.10,0)$)
+          (txt2) {liên kết thực thể $\leftrightarrow$ giai đoạn};
+
+    % --- Mục 3: mũi tên hai chiều = đồng bộ thời gian thực ---
+    \draw[bidir=black!70]
+          ($(txt2.east)+(0.5,0)$) -- ++(0.8,0) coordinate (a3end);
+    \node[font=\scriptsize, anchor=west, text=black!75] at ($(a3end)+(0.10,0)$)
+          {đồng bộ thời gian thực};
+\end{scope}
+
+% ====================================================================
+%  NỀN HÌNH TRÒN (chỉ tô nhẹ, không vẽ viền dashed để khỏi xuyên qua node)
+% ====================================================================
+\begin{scope}[on background layer]
+    \fill[black!2] (0,0) circle (\R);
+\end{scope}
+
+\end{tikzpicture}
+\end{document}
+
+
+
+
+
+
+

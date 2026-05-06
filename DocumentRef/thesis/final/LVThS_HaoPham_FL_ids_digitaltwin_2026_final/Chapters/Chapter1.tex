@@ -1,0 +1,82 @@
+% Chapter 1
+\chapter{MỞ ĐẦU}
+\label{Chapter1}
+
+\section{Động lực nghiên cứu}
+Trong bối cảnh Cách mạng Công nghiệp 4.0, Internet of Things (IoT) đã trở thành một phần không thể thiếu trong nhiều lĩnh vực như y tế thông minh, giao thông đô thị, nhà thông minh và công nghiệp. Sự phát triển chóng mặt của IoT cũng kéo theo thách thức nghiêm trọng về an toàn thông tin: tấn công mạng nhắm vào thiết bị IoT tăng 87\% giai đoạn 2022--2024, với các hình thức ngày càng tinh vi và đa dạng.
+
+Hệ thống phát hiện xâm nhập (Intrusion Detection System - IDS) dựa trên học máy và học sâu đóng vai trò trọng yếu trong việc tự động phát hiện hoạt động bất thường trong lưu lượng mạng. Tuy nhiên, cách tiếp cận truyền thống yêu cầu tập trung hóa dữ liệu tại máy chủ trung tâm, vi phạm quyền riêng tư dữ liệu IoT. Hơn nữa, việc tập trung hóa còn gặp rào cản về băng thông, độ trễ và vấn đề pháp lý khi chuyển dữ liệu qua biên giới.
+
+Học liên kết (Federated Learning - FL), được giới thiệu bởi McMahan và cộng sự năm 2017 {[}9{]}, cho phép nhiều client cùng huấn luyện mô hình chung mà không cần chia sẻ dữ liệu thô. Trong ngữ cảnh IoT IDS, FL vừa bảo vệ quyền riêng tư, vừa tận dụng nguồn dữ liệu phân tán. Tuy nhiên, trong môi trường IoT, dữ liệu thường có đặc tính Non-IID (phân bố không đồng nhất), tạo điều kiện cho các tấn công đầu độc (poisoning) và backdoor trở nên hiệu quả hơn.
+
+Nhiều phương pháp phòng thủ đã được đề xuất, nhưng phân tích đối sánh toàn diện trong DT-BFL {[}5{]} cho thấy kết luận đáng quan ngại: không có phương pháp nào duy trì hiệu năng tốt trước tất cả các loại tấn công. Từ nhu cầu thực tế này, đề tài "Phương pháp xác minh chủ động dựa trên bản sao số với trọng số hiệu năng tăng cường khả năng chống chịu của học liên kết trong phát hiện xâm nhập IoT" được thực hiện nhằm xây dựng khung phòng thủ DT-Guard, trong đó Digital Twin đóng vai trò kiểm chứng hành vi chủ động, kết hợp cơ chế DT-PW để định lượng đóng góp tri thức và loại bỏ free-rider.
+
+\section{Phát biểu bài toán}
+Xét hệ thống FL-IDS gồm $N$ client cùng huấn luyện mô hình phát hiện xâm nhập toàn cục $\mathbf{w}$ qua $R$ vòng lặp. Trong đó có $K$ client độc hại (tập $M$, $K$ không biết trước) và $N - K$ client lành tính (tập $B$). Mỗi client sở hữu dữ liệu cục bộ có phân phối Non-IID theo Dirichlet($\alpha$).
+
+Tại mỗi round, server nhận bản cập nhật từ N client nhưng không truy cập được dữ liệu thô. Server cần thiết kế cơ chế phòng thủ đạt ba yêu cầu: (1) mô hình toàn cục duy trì Accuracy cao bất chấp client độc hại; (2) phát hiện chính xác client độc hại với Detection Rate cao và False Positive Rate (FPR) thấp; (3) trọng số tổng hợp phản ánh đúng đóng góp tri thức, gán trọng số bằng 0 cho free-rider --- client không huấn luyện, chỉ sao chép mô hình toàn cục.
+
+Ràng buộc: server không truy cập dữ liệu thô; overhead nhỏ hơn 1\% thời gian mỗi round; hoạt động hiệu quả trên nhiều loại tấn công và nhiều tỉ lệ $K/N$ (10\%--50\%).
+
+\section{Các thách thức}
+Phân tích đối sánh toàn diện các phương pháp phòng thủ hiện có --- gồm Krum {[}2{]}, Median {[}18{]}, Trimmed Mean {[}18{]}, GeoMed {[}12{]}, SignGuard {[}16{]}, ClipCluster {[}19{]}, LUP {[}5{]}, và PoC {[}22{]} --- cho thấy ba thách thức cốt lõi:
+
+\textbf{Thách thức 1: Phòng thủ dễ bị qua mặt.} Tất cả phương pháp hiện tại đều dựa trên phân tích tham số thụ động (passive parameter inspection), chỉ đánh giá hình thái tham số thay vì kiểm chứng hành vi suy luận thực tế. Các tấn công tối ưu ngược như LIE {[}1{]}, Min-Max/Min-Sum {[}15{]} được thiết kế đặc biệt để giữ tham số trong vùng thống kê bình thường. Không có phương pháp nào duy trì Detection Rate cao và FPR thấp đồng thời trên tất cả các loại tấn công.
+
+\textbf{Thách thức 2: Nhầm lẫn Non-IID với đầu độc.} Phân tích tham số thụ động dễ nhầm lẫn giữa sai lệch tự nhiên do Non-IID và hành vi đầu độc cố tình. Client lành tính có dữ liệu thiên lệch cũng có tham số khác với mô hình toàn cục, bị các phương pháp như LUP và PoC loại nhầm.
+
+\textbf{Thách thức 3: Chưa đo được đóng góp tri thức thực tế.} FedAvg {[}9{]} gán trọng số theo số lượng mẫu, không phản ánh chất lượng. Cơ chế Trust Score trong LUP {[}5{]} và PoC {[}22{]} dựa trên khoảng cách tham số, vô tình thưởng cho free-rider --- client không đóng góp nhưng có tham số gần mô hình toàn cục. HSDPS {[}21{]} sử dụng Shapley Value nhưng chi phí theo cấp số mũ.
+
+\section{Mục tiêu và phạm vi nghiên cứu}
+\textbf{Mục tiêu:}
+
+\textbf{(1)} Xây dựng khung DT-Guard tích hợp Digital Twin làm môi trường kiểm chứng hành vi chủ động. Digital Twin đóng vai trò sandbox tách biệt để chủ động kiểm chứng năng lực suy luận của từng mô hình cục bộ trên dữ liệu thách thức được kiểm soát, thông qua pipeline kiểm định 4 lớp.
+
+\textbf{(2)} Thiết kế cơ chế DT-PW (DT-Driven Performance Weighting) để định lượng đóng góp tri thức thực tế và phát hiện free-rider, kết hợp Effort Gate xác định ngưỡng thích ứng.
+
+\textbf{(3)} Đánh giá toàn diện trên hai bộ dữ liệu IoT IDS tiêu chuẩn (CIC-IoT-2023 {[}11{]} và ToN-IoT), so sánh với chín phương pháp phòng thủ đại diện hiện nay.
+
+\textbf{Phạm vi nghiên cứu:}
+
+\begin{itemize}
+\item
+  Hai bộ dữ liệu: CIC-IoT-2023 (34 lớp, 39 đặc trưng) và ToN-IoT (10 lớp, 10 đặc trưng).
+\item
+  Cấu hình FL: 20 client, phân bổ Non-IID theo Dirichlet ($\alpha$ = 0,5), 20 vòng lặp, mô hình IoTAttackNet (MLP: $256\rightarrow128\rightarrow64$).
+\item
+  Năm loại tấn công: Backdoor, LIE {[}1{]}, Min-Max {[}15{]}, Min-Sum {[}15{]}, MPAF {[}3{]}, ở bốn tỷ lệ client độc hại (10\%, 20\%, 40\%, 50\%).
+\item
+  Chín phương pháp đối sánh: FedAvg, Krum, Median, Trimmed Mean, GeoMed, SignGuard, ClipCluster, LUP, PoC.
+\item
+  Giới hạn: không đánh giá membership inference, model extraction hay evasion attack; không thử nghiệm trên mạng IoT thực tế quy mô lớn; không tích hợp Blockchain.
+\end{itemize}
+
+\section{Đóng góp của luận văn}
+Luận văn đóng góp năm kết quả chính:
+
+\textbf{(1) Khung DT-Guard với pipeline kiểm định hành vi 4 lớp.} Chuyển paradigm từ phân tích tham số thụ động sang kiểm chứng hành vi chủ động bằng Digital Twin, đánh giá trực tiếp năng lực suy luận của mô hình trên dữ liệu thách thức thay vì chỉ phân tích hình thái tham số.
+
+\textbf{(2) Cơ chế DT-PW với Effort Gate.} Đo prediction divergence giữa mô hình cục bộ và mô hình toàn cục để định lượng đóng góp tri thức. Effort Gate tự động loại bỏ free-rider (trọng số = 0), giải quyết vấn đề Trust Score vô tình thưởng cho client không đóng góp.
+
+\textbf{(3) Bộ sinh dữ liệu thách thức dựa trên TabDDPM {[}7{]}.} Đạt kết quả tốt nhất qua A/B Testing năm mô hình sinh, đảm bảo chất lượng kiểm thử cho pipeline.
+
+\textbf{(4) Đánh giá toàn diện chứng minh tính tổng quát hóa.} DT-Guard duy trì FPR = 0\% trên cả CIC-IoT-2023 và ToN-IoT qua 40 kịch bản, trong khi mọi baseline đều thất bại trước ít nhất một loại tấn công.
+
+\textbf{(5) Overhead thấp, phù hợp IoT.} Overhead chiếm dưới 1\% tổng thời gian round, peak memory thấp nhất trong tất cả phương pháp.
+
+\textbf{Ý nghĩa khoa học:} Luận văn chứng minh nguyên lý kiểm chứng hành vi chủ động vượt trội hơn phân tích tham số thụ động, và nguyên lý này tổng quát không phụ thuộc dataset hay kiến trúc mô hình IDS cụ thể. Lỗ hổng của các phương pháp thụ động mang tính cấu trúc: cùng một baseline thất bại trước cùng loại tấn công ở cả hai môi trường thử nghiệm.
+
+\textbf{Ý nghĩa thực tiễn:} Framework triển khai được cho hệ thống FL-IDS thực tế với overhead không đáng kể, phù hợp môi trường tài nguyên hạn chế. Kết quả cốt lõi đã đệ trình tại hội nghị IEEE ICCE 2026 {[}23{]}.
+
+\section{Bố cục của luận văn}
+Ngoài Chương mở đầu, luận văn được cấu trúc thành năm chương:
+
+\textbf{Chương 2. Tổng quan về vấn đề nghiên cứu} --- phân tích các công trình nghiên cứu liên quan về IoT, IDS, FL, tấn công poisoning/backdoor, phương pháp phòng thủ hiện có, Digital Twin trong FL-IoT, chỉ ra ba thách thức và xác định mục tiêu, phương pháp nghiên cứu.
+
+\textbf{Chương 3. Cơ sở lý thuyết và công nghệ nền tảng} --- trình bày chi tiết Federated Learning, cơ chế kỹ thuật các tấn công, Digital Twin, mô hình sinh dữ liệu dạng bảng, mô hình IDS IoTAttackNet, và hai bộ dữ liệu thực nghiệm.
+
+\textbf{Chương 4. Đề xuất hệ thống DT-Guard} --- kiến trúc tổng thể, bộ sinh TabDDPM, pipeline kiểm định 4 lớp với Trust-Score, cơ chế DT-PW với Effort Gate, phân tích lý thuyết.
+
+\textbf{Chương 5. Thực nghiệm và đánh giá} --- thiết lập, ba kịch bản thực nghiệm (phòng thủ, bộ sinh, free-rider), phân tích overhead, bàn luận tổng hợp.
+
+\textbf{Chương 6. Kết luận và khuyến nghị} --- tổng kết, đóng góp khoa học, hạn chế, hướng phát triển tiếp theo.
